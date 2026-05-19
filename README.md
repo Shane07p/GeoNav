@@ -8,9 +8,8 @@ A console-based geospatial routing engine built in Java. The system models a cit
 
 ```mermaid
 graph TD
-    subgraph UI["Entry Points"]
+    subgraph UI["Entry Point"]
         MAIN["Main.java\nInteractive Console UI"]
-        BENCH["BenchmarkRunner.java\nPerformance Benchmarks"]
     end
 
     subgraph ENGINE["engine/"]
@@ -40,7 +39,6 @@ graph TD
     end
 
     MAIN  --> NAV
-    BENCH --> NAV
     NAV   --> G
     NAV   --> QT
     NAV   --> POIQT
@@ -62,7 +60,6 @@ graph TD
 ```
 final/
 ├── Main.java                        # Interactive console UI
-├── BenchmarkRunner.java             # Performance benchmarks
 ├── model/
 │   ├── Node.java                    # Geographic location (id, name, lat, lon)
 │   ├── Edge.java                    # Road segment (distance, speed limit)
@@ -79,118 +76,6 @@ final/
 │   └── AStarStrategy.java           # Fastest-time pathfinding (heuristic)
 └── engine/
     └── NavigationSystem.java        # Core engine coordinating graph, QuadTree & routing
-```
-
----
-
-## OOP Class Diagram
-
-```mermaid
-classDiagram
-    class RoutingStrategy {
-        <<interface>>
-        +findRoute(Graph, Node, Node) Route
-        +getStrategyName() String
-    }
-
-    class DijkstraStrategy {
-        +findRoute(Graph, Node, Node) Route
-        +getStrategyName() String
-        #reconstructRoute(Graph, Node, Node, Map, Map) Route
-    }
-
-    class AStarStrategy {
-        -MAX_SPEED_KMH : double
-        +findRoute(Graph, Node, Node) Route
-        +getStrategyName() String
-        -heuristic(Node, Node) double
-        -haversineDistance(double, double, double, double) double
-    }
-
-    class NavigationSystem {
-        -graph : Graph
-        -quadTree : QuadTree
-        -strategy : RoutingStrategy
-        +findRoute(String, String) Route
-        +findMultiStopRoute(List) Route
-        +compareRoutes(String, String) ComparisonResult
-        +findNearestNode(double, double) Node
-        +findNearestPOIs(String, double, double, int) List
-        +addLocation(Node)
-        +addRoad(String, String, double, double)
-    }
-
-    class ComparisonResult {
-        <<static inner>>
-        +dijkstraRoute : Route
-        +aStarRoute : Route
-        +dijkstraTimeNs : long
-        +aStarTimeNs : long
-    }
-
-    class Graph {
-        -nodes : Map~String, Node~
-        -adjacency : Map~String, List~Edge~~
-        +addNode(Node)
-        +addEdge(Node, Node, double, double)
-        +removeNode(String) boolean
-        +getNeighbors(String) List~Edge~
-        +getAllNodes() Collection~Node~
-    }
-
-    class Node {
-        -id : String
-        -name : String
-        -latitude : double
-        -longitude : double
-    }
-
-    class Edge {
-        -source : Node
-        -destination : Node
-        -distance : double
-        -speedLimit : double
-        +getTravelTime() double
-    }
-
-    class Route {
-        -nodes : List~Node~
-        -totalDistance : double
-        -totalTime : double
-    }
-
-    class QuadTree {
-        -CAPACITY : int
-        -points : List~Node~
-        -nw, ne, sw, se : QuadTree
-        +insert(Node) boolean
-        +findNearest(double, double) Node
-    }
-
-    class POIQuadTree {
-        +insert(PointOfInterest) boolean
-        +findKNearest(double, double, int) List
-    }
-
-    class PointOfInterest {
-        -id, name, category : String
-        -rating : double
-        -latitude, longitude : double
-        -nearestNodeId : String
-    }
-
-    RoutingStrategy      <|..  DijkstraStrategy   : implements
-    RoutingStrategy      <|..  AStarStrategy       : implements
-    NavigationSystem     -->   RoutingStrategy     : uses (Strategy Pattern)
-    NavigationSystem     -->   Graph               : has-a
-    NavigationSystem     -->   QuadTree            : has-a
-    NavigationSystem     -->   POIQuadTree         : has-a (per category)
-    NavigationSystem     +--   ComparisonResult    : static inner class
-    Graph                o--   Node                : contains
-    Graph                o--   Edge                : contains
-    Edge                 -->   Node                : src / dest
-    Route                o--   Node                : ordered path
-    POIQuadTree          o--   PointOfInterest     : indexes
 ```
 
 ---
@@ -220,19 +105,15 @@ classDiagram
 # Compile
 javac -d out model\Node.java model\Edge.java model\Route.java model\PointOfInterest.java graph\Graph.java spatial\QuadTree.java spatial\POIQuadTree.java strategy\RoutingStrategy.java strategy\DijkstraStrategy.java strategy\AStarStrategy.java engine\NavigationSystem.java Main.java
 
-# Run interactive console
+# Run
 java -cp out Main
-
-# Run performance benchmarks
-javac -d out model\Node.java model\Edge.java model\Route.java model\PointOfInterest.java graph\Graph.java spatial\QuadTree.java spatial\POIQuadTree.java strategy\RoutingStrategy.java strategy\DijkstraStrategy.java strategy\AStarStrategy.java engine\NavigationSystem.java BenchmarkRunner.java
-java -cp out BenchmarkRunner
 ```
 
 ---
 
 ## Performance Benchmarks
 
-> All numbers measured on a real JVM run using `System.nanoTime()` with **200 JIT warm-up runs** (discarded) followed by **1,000 measured iterations** per test. Times in microseconds (µs = 1/1,000,000 second).
+> Measured using `System.nanoTime()` with 200 JIT warm-up runs (discarded) followed by 1,000 measured iterations. Times in microseconds (µs).
 
 ### Algorithm Execution Time (CTR → PRT, n = 1,000 runs)
 
@@ -241,20 +122,7 @@ java -cp out BenchmarkRunner
 | Dijkstra | 5 µs | 3 µs | 53 µs | 11 µs |
 | A\* Search | 6 µs | 4 µs | 54 µs | 12 µs |
 
-Both algorithms complete in under **10 µs** per query. At 14 nodes both are equally fast — the real difference between them is **path quality**, shown below.
-
-```mermaid
-xychart-beta
-    title "Routing Query Latency — 1,000 JIT-warmed runs (microseconds)"
-    x-axis ["avg", "min", "max", "P95"]
-    y-axis "Time (us)" 0 --> 60
-    bar [5, 3, 53, 11]
-    bar [6, 4, 54, 12]
-```
-
-*Blue = Dijkstra &nbsp;|&nbsp; Purple = A\**
-
----
+Both algorithms complete in under **10 µs** per query. At 14 nodes both are equally fast — the meaningful difference between them is **path quality**.
 
 ### Path Divergence — All 91 Source–Destination Pairs
 
@@ -271,17 +139,9 @@ Dijkstra optimises for **shortest distance** (km); A\* optimises for **fastest t
 
 > A\* takes *more hops* but *less time* — it routes via highways even when that means a longer distance.
 
-```mermaid
-pie title "Path Divergence Across All 91 Route Pairs"
-    "Same path (both algorithms agree)" : 53
-    "Different path (A* finds faster route)" : 38
-```
-
----
-
 ### Multi-Stop Route Scaling
 
-Each additional stop adds one independent routing leg. This confirms the theoretical **O(k · (V+E) log V)** complexity empirically.
+Each additional stop adds one routing leg, confirming the theoretical **O(k · (V+E) log V)** complexity.
 
 | Stops | Avg Time | Ratio vs 2-stop |
 |:-----:|:--------:|:---------------:|
@@ -289,16 +149,6 @@ Each additional stop adds one independent routing leg. This confirms the theoret
 | 3 | 7 µs | 1.29× |
 | 4 | 8 µs | 1.50× |
 | 5 | 8 µs | 1.43× |
-
-```mermaid
-xychart-beta
-    title "Multi-Stop Routing — Latency vs Number of Waypoints"
-    x-axis ["2 stops", "3 stops", "4 stops", "5 stops"]
-    y-axis "Avg Time (us)" 0 --> 12
-    line [5, 7, 8, 8]
-```
-
----
 
 ### POI K-Nearest Search Latency
 
@@ -309,18 +159,14 @@ xychart-beta
 | MALL | 1 µs | 1 µs | 1 µs |
 | THEATRE | 1 µs | 1 µs | 1 µs |
 
-All POI searches complete in under **2 µs** regardless of k, because each category tree has a small, bounded node count.
-
----
-
-### QuadTree Spatial Index
+### QuadTree vs Linear Scan (5,000 random probes)
 
 | Method | Avg per probe | Complexity |
 |--------|:-------------:|:----------:|
 | Linear scan | 264 ns | O(N) |
 | QuadTree | 422 ns | O(log N) |
 
-At **N = 14 nodes**, the QuadTree's tree-traversal overhead exceeds the cost of scanning 14 items directly. This is expected — the crossover point for QuadTree advantage is typically 50–100+ nodes. The data structure is designed for **city-scale datasets** where O(log N) compounds significantly over O(N).
+At N = 14 nodes, the QuadTree's traversal overhead exceeds the cost of scanning 14 items directly — the crossover point is typically 50–100+ nodes. The structure is designed for city-scale datasets where O(log N) compounds significantly over O(N).
 
 ---
 
@@ -547,15 +393,3 @@ The system comes preloaded with **14 locations**, **23 bidirectional roads**, an
 | Restaurants | 10 | 3.0 – 4.7 |
 | Malls | 6 | 3.5 – 4.5 |
 | Theatres | 5 | 3.6 – 4.7 |
-
----
-
-## Resume Summary
-
-Key statistics from empirical benchmarks (run `java -cp out BenchmarkRunner` to reproduce):
-
-- Implemented **Dijkstra** and **A\*** pathfinding on a 14-node weighted city graph; both execute **under 10 µs per query** (1,000 JIT-warmed runs, `System.nanoTime()`)
-- A\* time-optimal paths **diverged from Dijkstra on 42% of 91 all-pairs routes**, saving an average **6 min/trip** and up to **27.9 min** by routing via highways (60–100 km/h) over shorter alleys (12–20 km/h)
-- **QuadTree O(log N) spatial index** designed for scalable nearest-node queries; implemented with branch-and-bound pruning across 4 per-category POI trees indexing 33 points of interest
-- Multi-stop waypoint routing chains up to 5 stops with confirmed **linear O(k · (V+E) log V) scaling** — 1.4× growth from 2 to 5 stops measured empirically
-- Applied **Strategy Pattern** for runtime algorithm switching, immutable model classes, and adjacency-list graph with O(1) node/edge access
