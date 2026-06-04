@@ -1,0 +1,93 @@
+# GeoNav Default City Map
+# Demo city loosely based on Bangalore, India
+# Lines starting with # are comments and are ignored.
+# Blank lines are ignored.
+# Sections must appear in this order: NODES -> EDGES -> POIS (POIS is optional)
+
+# NODES
+# ID, Name, Latitude, Longitude
+CTR, Central Plaza, 12.9756, 77.6068
+GDN, Sunset Garden, 12.9763, 77.5929
+MKT, Riverside Market, 12.9784, 77.6408
+THB, Tech Hub, 12.9352, 77.6245
+OLD, Old Town, 12.9966, 77.5713
+STN, Grand Station, 12.9772, 77.5722
+UNI, University, 12.9308, 77.5838
+LKS, Lakeside, 12.9116, 77.6389
+IND, Industrial Park, 12.8456, 77.6603
+HLV, Hillview, 12.9698, 77.7500
+NTH, North Gate, 13.0358, 77.5970
+AIR, Sky Airport, 13.1989, 77.7068
+CST, Castle District, 12.9988, 77.5921
+PRT, Port Area, 12.8650, 77.7870
+
+# EDGES
+# SourceID, DestID, Distance(km), SpeedLimit(km/h)
+# City center connections
+CTR, GDN, 1.5, 25.0
+CTR, MKT, 5.0, 40.0
+CTR, STN, 2.0, 20.0
+GDN, CST, 2.8, 30.0
+GDN, STN, 1.2, 15.0
+GDN, OLD, 3.5, 35.0
+# Inner ring connections
+MKT, THB, 5.5, 35.0
+MKT, HLV, 15.0, 60.0
+THB, UNI, 4.0, 30.0
+THB, LKS, 3.2, 25.0
+UNI, STN, 4.5, 20.0
+UNI, LKS, 6.0, 12.0
+# Outer ring / highway connections
+LKS, IND, 10.0, 55.0
+LKS, PRT, 12.0, 50.0
+IND, PRT, 15.0, 70.0
+HLV, PRT, 18.0, 80.0
+# North connections
+OLD, NTH, 5.0, 40.0
+CST, NTH, 4.5, 35.0
+CST, OLD, 2.5, 25.0
+# Airport expressway (30 km at 100 km/h)
+NTH, AIR, 30.0, 100.0
+# Cross-city shortcuts (congested)
+STN, OLD, 3.0, 15.0
+THB, IND, 16.0, 45.0
+
+# POIS
+# ID, Name, Category, NearestNodeID, Rating, Latitude, Longitude
+# Hotels (12)
+H1, Grand Plaza Hotel, HOTEL, CTR, 4.2, 12.9760, 77.6075
+H2, Sunset Inn, HOTEL, GDN, 4.8, 12.9768, 77.5935
+H3, City Lodge, HOTEL, MKT, 3.5, 12.9790, 77.6415
+H4, Tech Towers Hotel, HOTEL, THB, 4.0, 12.9358, 77.6250
+H5, Heritage House, HOTEL, OLD, 4.6, 12.9970, 77.5720
+H6, Station View Hotel, HOTEL, STN, 3.2, 12.9778, 77.5728
+H7, Campus Stay, HOTEL, UNI, 3.8, 12.9315, 77.5845
+H8, Lakeside Resort, HOTEL, LKS, 4.9, 12.9120, 77.6395
+H9, Industrial Inn, HOTEL, IND, 2.8, 12.8462, 77.6610
+H10, Hillview Lodge, HOTEL, HLV, 4.4, 12.9705, 77.7510
+H11, North Gate Hotel, HOTEL, NTH, 3.9, 13.0365, 77.5978
+H12, Sky Airport Hotel, HOTEL, AIR, 4.1, 13.1995, 77.7075
+# Restaurants (10)
+R1, Spice Garden, RESTAURANT, CTR, 4.5, 12.9752, 77.6062
+R2, Garden Cafe, RESTAURANT, GDN, 4.0, 12.9770, 77.5932
+R3, Market Bites, RESTAURANT, MKT, 3.8, 12.9780, 77.6400
+R4, Lakeside Grill, RESTAURANT, LKS, 4.3, 12.9110, 77.6382
+R5, Castle Bistro, RESTAURANT, CST, 4.7, 12.9992, 77.5928
+R6, Old Town Kitchen, RESTAURANT, OLD, 4.1, 12.9962, 77.5708
+R7, Tech Canteen, RESTAURANT, THB, 3.3, 12.9348, 77.6238
+R8, Port Fish House, RESTAURANT, PRT, 4.6, 12.8655, 77.7878
+R9, Hilltop Diner, RESTAURANT, HLV, 3.9, 12.9695, 77.7495
+R10, Station Snacks, RESTAURANT, STN, 3.0, 12.9775, 77.5725
+# Malls (6)
+M1, Central Mall, MALL, CTR, 4.0, 12.9758, 77.6072
+M2, Tech Plaza, MALL, THB, 3.5, 12.9355, 77.6248
+M3, Market Square Mall, MALL, MKT, 4.2, 12.9788, 77.6412
+M4, Lakeside Galleria, MALL, LKS, 4.5, 12.9118, 77.6392
+M5, Castle Court, MALL, CST, 3.8, 12.9985, 77.5918
+M6, Hillview Centre, MALL, HLV, 4.1, 12.9700, 77.7505
+# Theatres (5)
+T1, Star Cinema, THEATRE, CTR, 4.3, 12.9755, 77.6065
+T2, Castle Playhouse, THEATRE, CST, 4.7, 12.9990, 77.5925
+T3, Garden Amphitheatre, THEATRE, GDN, 4.0, 12.9765, 77.5932
+T4, Lakeside IMAX, THEATRE, LKS, 4.5, 12.9115, 77.6388
+T5, Market Multiplex, THEATRE, MKT, 3.6, 12.9782, 77.6405

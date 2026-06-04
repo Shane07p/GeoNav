@@ -1,0 +1,5 @@
+# Compiled Java class files
+*.class
+
+# Compiled output directory
+out/

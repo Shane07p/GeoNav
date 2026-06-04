@@ -1,5 +1,6 @@
 import engine.NavigationSystem;
 import graph.Graph;
+import loader.SeedFileLoader;
 import model.Node;
 import model.PointOfInterest;
 import model.Route;
@@ -8,6 +9,8 @@ import strategy.AStarStrategy;
 import strategy.DijkstraStrategy;
 import strategy.RoutingStrategy;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -21,18 +24,42 @@ public class Main {
     private static final RoutingStrategy DIJKSTRA = new DijkstraStrategy();
     private static final RoutingStrategy A_STAR = new AStarStrategy();
 
-    private static final String CYAN = "\u001B[36m";
-    private static final String GREEN = "\u001B[32m";
-    private static final String YELLOW = "\u001B[33m";
-    private static final String RED = "\u001B[31m";
-    private static final String MAGENTA = "\u001B[35m";
-    private static final String BOLD = "\u001B[1m";
-    private static final String DIM = "\u001B[2m";
-    private static final String RESET = "\u001B[0m";
+    private static final String CYAN    = "[36m";
+    private static final String GREEN   = "[32m";
+    private static final String YELLOW  = "[33m";
+    private static final String RED     = "[31m";
+    private static final String MAGENTA = "[35m";
+    private static final String BOLD    = "[1m";
+    private static final String DIM     = "[2m";
+    private static final String RESET   = "[0m";
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        NavigationSystem navSystem = buildCampusMap();
+
+        // Build an empty NavigationSystem — seed file fills it with data
+        Graph graph = new Graph();
+        double[] bounds = { 12.84, 13.21, 77.56, 77.80 };
+        QuadTree quadTree = new QuadTree(bounds[0], bounds[1], bounds[2], bounds[3]);
+        NavigationSystem navSystem = new NavigationSystem(graph, quadTree, DIJKSTRA,
+                bounds[0], bounds[1], bounds[2], bounds[3]);
+
+        // Prompt for seed file
+        System.out.print("\n  Enter seed file path (press Enter for default city): ");
+        String path = sc.nextLine().trim();
+        if (path.isEmpty()) path = "seeds/default_city.txt";
+
+        try {
+            SeedFileLoader.load(navSystem, path);
+        } catch (SeedFileLoader.SeedFileException e) {
+            System.out.println("  " + RED + "[ERROR] " + e.getMessage() + RESET);
+            if (!loadFallback(navSystem, sc)) { sc.close(); return; }
+        } catch (FileNotFoundException e) {
+            System.out.println("  " + RED + "[ERROR] File not found: " + path + RESET);
+            if (!loadFallback(navSystem, sc)) { sc.close(); return; }
+        } catch (IOException e) {
+            System.out.println("  " + RED + "[ERROR] Could not read file: " + e.getMessage() + RESET);
+            if (!loadFallback(navSystem, sc)) { sc.close(); return; }
+        }
 
         printBanner();
 
@@ -44,42 +71,18 @@ public class Main {
             System.out.println();
 
             switch (choice) {
-                case "1":
-                    showAllLocations(navSystem);
-                    break;
-                case "2":
-                    findRoute(navSystem, sc);
-                    break;
-                case "3":
-                    switchStrategy(navSystem);
-                    break;
-                case "4":
-                    findNearest(navSystem, sc);
-                    break;
-                case "5":
-                    addLocation(navSystem, sc);
-                    break;
-                case "6":
-                    addRoad(navSystem, sc);
-                    break;
-                case "7":
-                    showMapStats(navSystem);
-                    break;
-                case "8":
-                    deleteLocation(navSystem, sc);
-                    break;
-                case "9":
-                    multiStopRoute(navSystem, sc);
-                    break;
-                case "10":
-                    compareRoutes(navSystem, sc);
-                    break;
-                case "11":
-                    findNearbyPlaces(navSystem, sc);
-                    break;
-                case "12":
-                    addPlace(navSystem, sc);
-                    break;
+                case "1":  showAllLocations(navSystem);      break;
+                case "2":  findRoute(navSystem, sc);         break;
+                case "3":  switchStrategy(navSystem);        break;
+                case "4":  findNearest(navSystem, sc);       break;
+                case "5":  addLocation(navSystem, sc);       break;
+                case "6":  addRoad(navSystem, sc);           break;
+                case "7":  showMapStats(navSystem);          break;
+                case "8":  deleteLocation(navSystem, sc);    break;
+                case "9":  multiStopRoute(navSystem, sc);    break;
+                case "10": compareRoutes(navSystem, sc);     break;
+                case "11": findNearbyPlaces(navSystem, sc);  break;
+                case "12": addPlace(navSystem, sc);          break;
                 case "0":
                     running = false;
                     System.out.println(DIM + "  Goodbye! Thank you for using GeoNav." + RESET + "\n");
@@ -92,134 +95,20 @@ public class Main {
         sc.close();
     }
 
-    // ══════════════════════════════════════════════════════════
-    // BUILD DEMO CITY MAP
-    // ══════════════════════════════════════════════════════════
-
-    private static NavigationSystem buildCampusMap() {
-        Graph graph = new Graph();
-
-        // ── 14 City Locations ───────────────────────────────────
-        Node central = new Node("CTR", "Central Plaza", 12.9756, 77.6068);
-        Node garden = new Node("GDN", "Sunset Garden", 12.9763, 77.5929);
-        Node market = new Node("MKT", "Riverside Market", 12.9784, 77.6408);
-        Node techHub = new Node("THB", "Tech Hub", 12.9352, 77.6245);
-        Node oldTown = new Node("OLD", "Old Town", 12.9966, 77.5713);
-        Node station = new Node("STN", "Grand Station", 12.9772, 77.5722);
-        Node univrst = new Node("UNI", "University", 12.9308, 77.5838);
-        Node lakeSide = new Node("LKS", "Lakeside", 12.9116, 77.6389);
-        Node indPark = new Node("IND", "Industrial Park", 12.8456, 77.6603);
-        Node hillView = new Node("HLV", "Hillview", 12.9698, 77.7500);
-        Node northGte = new Node("NTH", "North Gate", 13.0358, 77.5970);
-        Node airport = new Node("AIR", "Sky Airport", 13.1989, 77.7068);
-        Node castle = new Node("CST", "Castle District", 12.9988, 77.5921);
-        Node portArea = new Node("PRT", "Port Area", 12.8650, 77.7870);
-
-        for (Node n : new Node[] {
-                central, garden, market, techHub, oldTown, station, univrst,
-                lakeSide, indPark, hillView, northGte, airport, castle, portArea
-        })
-            graph.addNode(n);
-
-        // ── Roads — varying speeds creates Dijkstra vs A* divergence ─
-        //
-        // Alleys/lanes: low speed (12-20 km/h) => short distance, slow time
-        // City roads: medium (25-40 km/h)
-        // Highways: fast (55-80 km/h) => longer distance, fast time
-        // Expressway: very fast (100 km/h)
-        //
-        // Result: Dijkstra picks short alleys, A* picks faster highways.
-
-        // City center connections
-        graph.addEdge(central, garden, 1.5, 25); // boulevard
-        graph.addEdge(central, market, 5.0, 40); // main avenue
-        graph.addEdge(central, station, 2.0, 20); // congested street
-        graph.addEdge(garden, castle, 2.8, 30); // scenic route
-        graph.addEdge(garden, station, 1.2, 15); // narrow alley
-        graph.addEdge(garden, oldTown, 3.5, 35); // bridge road
-
-        // Inner ring connections
-        graph.addEdge(market, techHub, 5.5, 35); // ring road
-        graph.addEdge(market, hillView, 15.0, 60); // highway — long but FAST
-        graph.addEdge(techHub, univrst, 4.0, 30); // city road
-        graph.addEdge(techHub, lakeSide, 3.2, 25); // shortcut
-        graph.addEdge(univrst, station, 4.5, 20); // congested stretch
-        graph.addEdge(univrst, lakeSide, 6.0, 12); // dirt road — VERY SLOW
-
-        // Outer ring / highway connections
-        graph.addEdge(lakeSide, indPark, 10.0, 55); // coastal highway
-        graph.addEdge(lakeSide, portArea, 12.0, 50); // outer ring
-        graph.addEdge(indPark, portArea, 15.0, 70); // expressway — long but very fast
-        graph.addEdge(hillView, portArea, 18.0, 80); // expressway — longest but fastest
-
-        // North connections
-        graph.addEdge(oldTown, northGte, 5.0, 40); // north avenue
-        graph.addEdge(castle, northGte, 4.5, 35); // castle road north
-        graph.addEdge(castle, oldTown, 2.5, 25); // heritage lane
-
-        // Airport expressway
-        graph.addEdge(northGte, airport, 30.0, 100); // expressway — 30 km at 100 km/h!
-
-        // Cross-city shortcuts (congested)
-        graph.addEdge(station, oldTown, 3.0, 15); // slow trolley route
-        graph.addEdge(techHub, indPark, 16.0, 45); // factory road (congested)
-
-        double minLat = 12.84, maxLat = 13.21, minLon = 77.56, maxLon = 77.80;
-        QuadTree quadTree = new QuadTree(minLat, maxLat, minLon, maxLon);
-        for (Node node : graph.getAllNodes())
-            quadTree.insert(node);
-
-        NavigationSystem nav = new NavigationSystem(graph, quadTree, DIJKSTRA,
-                minLat, maxLat, minLon, maxLon);
-
-        // ── Demo POIs (hotels, restaurants, malls, theatres) ──────
-
-        // HOTELS (12)
-        nav.addPOI(new PointOfInterest("H1",  "Grand Plaza Hotel",     "HOTEL", 4.2, 12.9760, 77.6075, "CTR"));
-        nav.addPOI(new PointOfInterest("H2",  "Sunset Inn",            "HOTEL", 4.8, 12.9768, 77.5935, "GDN"));
-        nav.addPOI(new PointOfInterest("H3",  "City Lodge",            "HOTEL", 3.5, 12.9790, 77.6415, "MKT"));
-        nav.addPOI(new PointOfInterest("H4",  "Tech Towers Hotel",     "HOTEL", 4.0, 12.9358, 77.6250, "THB"));
-        nav.addPOI(new PointOfInterest("H5",  "Heritage House",        "HOTEL", 4.6, 12.9970, 77.5720, "OLD"));
-        nav.addPOI(new PointOfInterest("H6",  "Station View Hotel",    "HOTEL", 3.2, 12.9778, 77.5728, "STN"));
-        nav.addPOI(new PointOfInterest("H7",  "Campus Stay",           "HOTEL", 3.8, 12.9315, 77.5845, "UNI"));
-        nav.addPOI(new PointOfInterest("H8",  "Lakeside Resort",       "HOTEL", 4.9, 12.9120, 77.6395, "LKS"));
-        nav.addPOI(new PointOfInterest("H9",  "Industrial Inn",        "HOTEL", 2.8, 12.8462, 77.6610, "IND"));
-        nav.addPOI(new PointOfInterest("H10", "Hillview Lodge",        "HOTEL", 4.4, 12.9705, 77.7510, "HLV"));
-        nav.addPOI(new PointOfInterest("H11", "North Gate Hotel",      "HOTEL", 3.9, 13.0365, 77.5978, "NTH"));
-        nav.addPOI(new PointOfInterest("H12", "Sky Airport Hotel",     "HOTEL", 4.1, 13.1995, 77.7075, "AIR"));
-
-        // RESTAURANTS (10)
-        nav.addPOI(new PointOfInterest("R1",  "Spice Garden",          "RESTAURANT", 4.5, 12.9752, 77.6062, "CTR"));
-        nav.addPOI(new PointOfInterest("R2",  "Garden Cafe",           "RESTAURANT", 4.0, 12.9770, 77.5932, "GDN"));
-        nav.addPOI(new PointOfInterest("R3",  "Market Bites",          "RESTAURANT", 3.8, 12.9780, 77.6400, "MKT"));
-        nav.addPOI(new PointOfInterest("R4",  "Lakeside Grill",        "RESTAURANT", 4.3, 12.9110, 77.6382, "LKS"));
-        nav.addPOI(new PointOfInterest("R5",  "Castle Bistro",         "RESTAURANT", 4.7, 12.9992, 77.5928, "CST"));
-        nav.addPOI(new PointOfInterest("R6",  "Old Town Kitchen",      "RESTAURANT", 4.1, 12.9962, 77.5708, "OLD"));
-        nav.addPOI(new PointOfInterest("R7",  "Tech Canteen",          "RESTAURANT", 3.3, 12.9348, 77.6238, "THB"));
-        nav.addPOI(new PointOfInterest("R8",  "Port Fish House",       "RESTAURANT", 4.6, 12.8655, 77.7878, "PRT"));
-        nav.addPOI(new PointOfInterest("R9",  "Hilltop Diner",         "RESTAURANT", 3.9, 12.9695, 77.7495, "HLV"));
-        nav.addPOI(new PointOfInterest("R10", "Station Snacks",        "RESTAURANT", 3.0, 12.9775, 77.5725, "STN"));
-
-        // MALLS (6)
-        nav.addPOI(new PointOfInterest("M1",  "Central Mall",          "MALL", 4.0, 12.9758, 77.6072, "CTR"));
-        nav.addPOI(new PointOfInterest("M2",  "Tech Plaza",            "MALL", 3.5, 12.9355, 77.6248, "THB"));
-        nav.addPOI(new PointOfInterest("M3",  "Market Square Mall",    "MALL", 4.2, 12.9788, 77.6412, "MKT"));
-        nav.addPOI(new PointOfInterest("M4",  "Lakeside Galleria",     "MALL", 4.5, 12.9118, 77.6392, "LKS"));
-        nav.addPOI(new PointOfInterest("M5",  "Castle Court",          "MALL", 3.8, 12.9985, 77.5918, "CST"));
-        nav.addPOI(new PointOfInterest("M6",  "Hillview Centre",       "MALL", 4.1, 12.9700, 77.7505, "HLV"));
-
-        // THEATRES (5)
-        nav.addPOI(new PointOfInterest("T1",  "Star Cinema",           "THEATRE", 4.3, 12.9755, 77.6065, "CTR"));
-        nav.addPOI(new PointOfInterest("T2",  "Castle Playhouse",      "THEATRE", 4.7, 12.9990, 77.5925, "CST"));
-        nav.addPOI(new PointOfInterest("T3",  "Garden Amphitheatre",   "THEATRE", 4.0, 12.9765, 77.5932, "GDN"));
-        nav.addPOI(new PointOfInterest("T4",  "Lakeside IMAX",         "THEATRE", 4.5, 12.9115, 77.6388, "LKS"));
-        nav.addPOI(new PointOfInterest("T5",  "Market Multiplex",      "THEATRE", 3.6, 12.9782, 77.6405, "MKT"));
-
-        return nav;
+    private static boolean loadFallback(NavigationSystem navSystem, Scanner sc) {
+        System.out.print("  Load default city instead? (y/n): ");
+        if (!sc.nextLine().trim().equalsIgnoreCase("y")) return false;
+        try {
+            SeedFileLoader.load(navSystem, "seeds/default_city.txt");
+            return true;
+        } catch (Exception e) {
+            System.out.println("  " + RED + "[ERROR] Could not load default city: " + e.getMessage() + RESET);
+            return false;
+        }
     }
 
     // ══════════════════════════════════════════════════════════
-    // MENU ACTIONS (1-10)
+    // MENU ACTIONS (1-12)
     // ══════════════════════════════════════════════════════════
 
     private static void showAllLocations(NavigationSystem nav) {
@@ -276,10 +165,24 @@ public class Main {
     private static void findNearest(NavigationSystem nav, Scanner sc) {
         System.out.println(BOLD + "  FIND NEAREST LOCATION" + RESET);
         System.out.println();
+
         System.out.print("  " + YELLOW + "Latitude  : " + RESET);
-        double lat = Double.parseDouble(sc.nextLine().trim());
+        double lat;
+        try {
+            lat = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
+
         System.out.print("  " + YELLOW + "Longitude : " + RESET);
-        double lon = Double.parseDouble(sc.nextLine().trim());
+        double lon;
+        try {
+            lon = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
 
         Node nearest = nav.findNearestNode(lat, lon);
         if (nearest != null) {
@@ -294,18 +197,34 @@ public class Main {
     private static void addLocation(NavigationSystem nav, Scanner sc) {
         System.out.println(BOLD + "  ADD NEW LOCATION" + RESET);
         System.out.println();
+
         System.out.print("  " + YELLOW + "Location ID   : " + RESET);
         String id = sc.nextLine().trim().toUpperCase();
         if (nav.getGraph().getNode(id) != null) {
             System.out.println("\n  " + RED + "ID '" + id + "' already exists." + RESET + "\n");
             return;
         }
+
         System.out.print("  " + YELLOW + "Location Name : " + RESET);
         String name = sc.nextLine().trim();
+
         System.out.print("  " + YELLOW + "Latitude      : " + RESET);
-        double lat = Double.parseDouble(sc.nextLine().trim());
+        double lat;
+        try {
+            lat = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
+
         System.out.print("  " + YELLOW + "Longitude     : " + RESET);
-        double lon = Double.parseDouble(sc.nextLine().trim());
+        double lon;
+        try {
+            lon = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
 
         nav.addLocation(new Node(id, name, lat, lon));
         System.out.println("\n  " + GREEN + "Added: " + BOLD + name + RESET + GREEN
@@ -316,6 +235,7 @@ public class Main {
         System.out.println(BOLD + "  DELETE LOCATION" + RESET);
         System.out.println(DIM + "  (removes the location and all connected roads)" + RESET);
         System.out.println();
+
         System.out.print("  " + YELLOW + "Location ID : " + RESET);
         String id = sc.nextLine().trim().toUpperCase();
 
@@ -338,18 +258,34 @@ public class Main {
         System.out.println(BOLD + "  ADD NEW ROAD" + RESET);
         System.out.println(DIM + "  (creates a bidirectional connection)" + RESET);
         System.out.println();
+
         System.out.print("  " + YELLOW + "From ID           : " + RESET);
         String srcId = sc.nextLine().trim().toUpperCase();
         System.out.print("  " + YELLOW + "To ID             : " + RESET);
         String destId = sc.nextLine().trim().toUpperCase();
+
         if (nav.getGraph().getNode(srcId) == null || nav.getGraph().getNode(destId) == null) {
             System.out.println("\n  " + RED + "Invalid ID(s). Add locations first." + RESET + "\n");
             return;
         }
+
         System.out.print("  " + YELLOW + "Distance (km)     : " + RESET);
-        double dist = Double.parseDouble(sc.nextLine().trim());
+        double dist;
+        try {
+            dist = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
+
         System.out.print("  " + YELLOW + "Speed limit (km/h): " + RESET);
-        double speed = Double.parseDouble(sc.nextLine().trim());
+        double speed;
+        try {
+            speed = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
 
         nav.addRoad(srcId, destId, dist, speed);
         System.out.println("\n  " + GREEN + "Road added: " + BOLD + srcId + " <-> " + destId
@@ -368,7 +304,7 @@ public class Main {
     private static void multiStopRoute(NavigationSystem nav, Scanner sc) {
         System.out.println(BOLD + "  MULTI-STOP ROUTE" + RESET);
         System.out.println(DIM + "  Enter stop IDs separated by commas (min 2)" + RESET);
-        System.out.println(DIM + "  Example: MG, LIB, CAF, HOS" + RESET);
+        System.out.println(DIM + "  Example: CTR, MKT, LKS, PRT" + RESET);
         System.out.println();
 
         System.out.print("  " + YELLOW + "Stops: " + RESET);
@@ -382,8 +318,7 @@ public class Main {
 
         List<String> stops = new ArrayList<>();
         for (String p : parts) {
-            if (!p.isEmpty())
-                stops.add(p);
+            if (!p.isEmpty()) stops.add(p);
         }
 
         long t0 = System.nanoTime();
@@ -397,13 +332,11 @@ public class Main {
             System.out.println(MAGENTA + "  ╔══════════════════════════════════════════════════╗" + RESET);
             System.out.println(MAGENTA + "  ║  MULTI-STOP ROUTE                                ║" + RESET);
             System.out.println(MAGENTA + "  ╠══════════════════════════════════════════════════╣" + RESET);
-
             System.out.println(MAGENTA + "  ║  " + RESET + "Stops: " + BOLD + String.join(" -> ", stops) + RESET);
 
             StringBuilder pathStr = new StringBuilder();
             for (int i = 0; i < route.getNodes().size(); i++) {
-                if (i > 0)
-                    pathStr.append(" -> ");
+                if (i > 0) pathStr.append(" -> ");
                 pathStr.append(route.getNodes().get(i).getName());
             }
             System.out.println(MAGENTA + "  ║  " + RESET + "Path : " + DIM + pathStr + RESET);
@@ -437,33 +370,21 @@ public class Main {
                 CYAN + " Dijkstra (Distance)" + RESET, MAGENTA + " A* Search (Time)" + RESET);
         System.out.println(BOLD + "  ├─────────────────────────┼─────────────────────────┤" + RESET);
 
-        // Path
         String dPath = cmp.dijkstraRoute != null ? formatPathShort(cmp.dijkstraRoute) : "No route";
-        String aPath = cmp.aStarRoute != null ? formatPathShort(cmp.aStarRoute) : "No route";
+        String aPath = cmp.aStarRoute    != null ? formatPathShort(cmp.aStarRoute)    : "No route";
         System.out.printf("  │ %-24s│ %-24s│\n", " " + dPath, " " + aPath);
 
-        // Distance
-        String dDist = cmp.dijkstraRoute != null
-                ? String.format("%.2f km", cmp.dijkstraRoute.getTotalDistance())
-                : "-";
-        String aDist = cmp.aStarRoute != null
-                ? String.format("%.2f km", cmp.aStarRoute.getTotalDistance())
-                : "-";
+        String dDist = cmp.dijkstraRoute != null ? String.format("%.2f km", cmp.dijkstraRoute.getTotalDistance()) : "-";
+        String aDist = cmp.aStarRoute    != null ? String.format("%.2f km", cmp.aStarRoute.getTotalDistance())    : "-";
         System.out.printf("  │ Dist: %-18s│ Dist: %-18s│\n", dDist, aDist);
 
-        // Time
-        String dTime = cmp.dijkstraRoute != null
-                ? String.format("%.1f min", cmp.dijkstraRoute.getTotalTime() * 60)
-                : "-";
-        String aTime = cmp.aStarRoute != null
-                ? String.format("%.1f min", cmp.aStarRoute.getTotalTime() * 60)
-                : "-";
+        String dTime = cmp.dijkstraRoute != null ? String.format("%.1f min", cmp.dijkstraRoute.getTotalTime() * 60) : "-";
+        String aTime = cmp.aStarRoute    != null ? String.format("%.1f min", cmp.aStarRoute.getTotalTime() * 60)    : "-";
         System.out.printf("  │ Time: %-18s│ Time: %-18s│\n", dTime, aTime);
 
-        // Computation time
         System.out.printf("  │ Comp: %-18s│ Comp: %-18s│\n",
                 String.format("%.3f ms", cmp.dijkstraTimeNs / 1_000_000.0),
-                String.format("%.3f ms", cmp.aStarTimeNs / 1_000_000.0));
+                String.format("%.3f ms", cmp.aStarTimeNs    / 1_000_000.0));
 
         System.out.println("  └─────────────────────────┴─────────────────────────┘");
         System.out.println();
@@ -477,7 +398,6 @@ public class Main {
         System.out.println(BOLD + "  FIND NEARBY PLACES" + RESET);
         System.out.println();
 
-        // Show available categories
         Set<String> categories = nav.getCategories();
         if (categories.isEmpty()) {
             System.out.println("  " + RED + "No places loaded." + RESET + "\n");
@@ -506,7 +426,6 @@ public class Main {
         }
         String selectedCat = catArray[catChoice - 1];
 
-        // Get user location
         System.out.print("  " + YELLOW + "Your location (Node ID): " + RESET);
         String nodeId = sc.nextLine().trim().toUpperCase();
         Node userNode = nav.getGraph().getNode(nodeId);
@@ -515,7 +434,6 @@ public class Main {
             return;
         }
 
-        // Find top 3 nearest
         List<PointOfInterest> nearest = nav.findNearestPOIs(selectedCat,
                 userNode.getLatitude(), userNode.getLongitude(), 3);
 
@@ -524,7 +442,6 @@ public class Main {
             return;
         }
 
-        // Display results
         System.out.println();
         System.out.println(BOLD + "  TOP " + nearest.size() + " " + selectedCat + "S NEAR " + userNode.getName() + RESET);
         System.out.println(DIM + "  ────────────────────────────────────────────────────────" + RESET);
@@ -541,7 +458,6 @@ public class Main {
         }
         System.out.println(DIM + "  ────────────────────────────────────────────────────────" + RESET);
 
-        // Let user choose one to navigate to
         System.out.println();
         System.out.print("  " + YELLOW + "Navigate to (1-" + nearest.size() + ", or 0 to skip): " + RESET);
         int navChoice;
@@ -556,7 +472,6 @@ public class Main {
             return;
         }
 
-        // Route to chosen POI
         PointOfInterest chosen = nearest.get(navChoice - 1);
         System.out.println();
         System.out.println(BOLD + "  NAVIGATING TO: " + RESET + CYAN + chosen.getName() + RESET);
@@ -583,12 +498,34 @@ public class Main {
         String name = sc.nextLine().trim();
         System.out.print("  " + YELLOW + "Category       : " + RESET);
         String cat = sc.nextLine().trim().toUpperCase();
+
         System.out.print("  " + YELLOW + "Rating (1-5)   : " + RESET);
-        double rating = Double.parseDouble(sc.nextLine().trim());
+        double rating;
+        try {
+            rating = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
+
         System.out.print("  " + YELLOW + "Latitude       : " + RESET);
-        double lat = Double.parseDouble(sc.nextLine().trim());
+        double lat;
+        try {
+            lat = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
+
         System.out.print("  " + YELLOW + "Longitude      : " + RESET);
-        double lon = Double.parseDouble(sc.nextLine().trim());
+        double lon;
+        try {
+            lon = Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return;
+        }
+
         System.out.print("  " + YELLOW + "Nearest Node ID: " + RESET);
         String nearNode = sc.nextLine().trim().toUpperCase();
 
@@ -610,8 +547,7 @@ public class Main {
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                 * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
     // ══════════════════════════════════════════════════════════
@@ -626,8 +562,7 @@ public class Main {
 
         StringBuilder pathStr = new StringBuilder();
         for (int i = 0; i < route.getNodes().size(); i++) {
-            if (i > 0)
-                pathStr.append(" -> ");
+            if (i > 0) pathStr.append(" -> ");
             pathStr.append(route.getNodes().get(i).getName());
         }
         System.out.println(color + "  ║  " + RESET + "Path : " + BOLD + pathStr + RESET);
@@ -645,8 +580,7 @@ public class Main {
         if (nodes.size() <= 3) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < nodes.size(); i++) {
-                if (i > 0)
-                    sb.append("->");
+                if (i > 0) sb.append("->");
                 sb.append(nodes.get(i).getId());
             }
             return sb.toString();
@@ -664,7 +598,6 @@ public class Main {
         System.out.println(CYAN + BOLD + "  \\____|\\___|\\___/|_| \\_|\\__,_| \\_/  " + RESET);
         System.out.println();
         System.out.println(DIM + "  Geospatial Routing & Navigation Engine" + RESET);
-        System.out.println(DIM + "  Demo City | 14 locations | 23 roads | 33 places" + RESET);
         System.out.println();
     }
 
