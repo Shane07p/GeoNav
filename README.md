@@ -24,7 +24,7 @@ graph TD
     end
 
     subgraph GRAPH["graph/"]
-        G["Graph\n─────────────────────\naddNode()  O(1)\naddEdge()  O(1)\ngetNeighbors()  O(1)\nremoveNode()  O(V+E)"]
+        G["Graph\n─────────────────────\naddNode()  O(1)\naddEdge()  O(1)\ngetNeighbors()  O(1)\ngetEdgeCount()  O(1)\nremoveNode()  O(V+E)"]
     end
 
     subgraph MODEL["model/"]
@@ -240,7 +240,7 @@ Let **V** = number of nodes (vertices), **E** = number of edges (roads).
 | Remove Node | **O(V + E)** | Removes from map, then scans all adjacency lists to purge edges pointing to the deleted node |
 | Get Neighbors | **O(1)** | Direct HashMap lookup |
 | Get Node by ID | **O(1)** | Direct HashMap lookup |
-| Edge Count | **O(V)** | Sums all adjacency list sizes |
+| Edge Count | **O(1)** | Counter maintained on `addEdge` / `removeNode` |
 
 ### QuadTree Operations
 

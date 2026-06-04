@@ -13,10 +13,12 @@ import java.util.*;
 public class Graph {
     private final Map<String, Node> nodes; // id → Node
     private final Map<String, List<Edge>> adjacency; // nodeId → outgoing edges
+    private int edgeCount;
 
     public Graph() {
         this.nodes = new LinkedHashMap<>();
         this.adjacency = new LinkedHashMap<>();
+        this.edgeCount = 0;
     }
 
     // Mutators
@@ -33,13 +35,15 @@ public class Graph {
 
         adjacency.get(source.getId()).add(forward);
         adjacency.get(destination.getId()).add(reverse);
+        edgeCount++;
     }
 
     public boolean removeNode(String id) {
         if (nodes.remove(id) == null) {
             return false;
         }
-        adjacency.remove(id);
+        List<Edge> removed = adjacency.remove(id);
+        if (removed != null) edgeCount -= removed.size();
 
         // Remove edges in other nodes' lists that point to the deleted node
         for (List<Edge> edges : adjacency.values()) {
@@ -68,10 +72,6 @@ public class Graph {
     }
 
     public int getEdgeCount() {
-        int res = 0;
-        for (List<Edge> edges : adjacency.values()) {
-            res += edges.size();
-        }
-        return res / 2;
+        return edgeCount;
     }
 }
