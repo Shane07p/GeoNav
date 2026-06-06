@@ -176,8 +176,8 @@ On a hard error the program offers to fall back to `seeds/default_city.txt`.
 
 | Algorithm | Avg | Min | Max | P95 |
 |-----------|:---:|:---:|:---:|:---:|
-| Dijkstra | 5 µs | 3 µs | 53 µs | 11 µs |
-| A\* Search | 6 µs | 4 µs | 54 µs | 12 µs |
+| Dijkstra | 6 µs | 3 µs | 108 µs | 10 µs |
+| A\* Search | 6 µs | 4 µs | 114 µs | 10 µs |
 
 Both algorithms complete in under **10 µs** per query. At 14 nodes both are equally fast — the meaningful difference between them is **path quality**.
 
@@ -202,10 +202,10 @@ Each additional stop adds one routing leg, confirming the theoretical **O(k · (
 
 | Stops | Avg Time | Ratio vs 2-stop |
 |:-----:|:--------:|:---------------:|
-| 2 | 5 µs | 1.00× (baseline) |
-| 3 | 7 µs | 1.29× |
-| 4 | 8 µs | 1.50× |
-| 5 | 8 µs | 1.43× |
+| 2 | 6 µs | 1.00× (baseline) |
+| 3 | 7 µs | 1.14× |
+| 4 | 9 µs | 1.49× |
+| 5 | 8 µs | 1.29× |
 
 ### POI K-Nearest Search Latency
 
@@ -254,8 +254,8 @@ Let **V** = number of nodes (vertices), **E** = number of edges (roads).
 
 | Algorithm | Time Complexity | Space Complexity | Explanation |
 |-----------|:---------------:|:----------------:|-------------|
-| Dijkstra | **O((V + E) log V)** | **O(V)** | Min-heap priority queue; each node extracted once, each edge relaxed once |
-| A\* Search | **O((V + E) log V)** | **O(V)** | Same worst case as Dijkstra, but the heuristic prunes the search space — in practice explores fewer nodes |
+| Dijkstra | **O((V + E) log V)** | **O(V)** | Min-heap priority queue; each node extracted once, each edge relaxed once; path reconstruction O(V) via cached edge map |
+| A\* Search | **O((V + E) log V)** | **O(V)** | Same worst case as Dijkstra, but the heuristic prunes the search space — in practice explores fewer nodes; reconstruction O(V) via cached edge map |
 | Multi-Stop Route | **O(k · (V + E) log V)** | **O(V)** | Chains *k − 1* individual route queries for *k* stops |
 | Route Comparison | **O((V + E) log V)** | **O(V)** | Runs both algorithms sequentially |
 

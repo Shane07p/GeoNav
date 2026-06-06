@@ -32,6 +32,7 @@ public class AStarStrategy implements RoutingStrategy {
         Map<String, Double> gScore = new HashMap<>();
         Map<String, Double> fScore = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
+        Map<String, Edge>   usedEdge = new HashMap<>();
 
         Set<String> visited = new HashSet<>();
 
@@ -67,6 +68,7 @@ public class AStarStrategy implements RoutingStrategy {
 
                 if (tentativeG < gScore.get(neighborId)) {
                     prev.put(neighborId, currentId);
+                    usedEdge.put(neighborId, edge);
                     gScore.put(neighborId, tentativeG);
                     double h = heuristic(edge.getDestination(), destination);
                     fScore.put(neighborId, tentativeG + h);
@@ -75,7 +77,7 @@ public class AStarStrategy implements RoutingStrategy {
             }
         }
 
-        return reconstructRoute(graph, source, destination, gScore, prev);
+        return reconstructRoute(graph, source, destination, gScore, prev, usedEdge);
     }
 
     // ── Haversine Heuristic ──────────────────────────────────
@@ -111,29 +113,25 @@ public class AStarStrategy implements RoutingStrategy {
         return R * c;
     }
 
-    private Route reconstructRoute(Graph graph, Node source, Node destination, Map<String, Double> gScore, Map<String, String> prev) {
+    private Route reconstructRoute(Graph graph, Node source, Node destination,
+            Map<String, Double> gScore, Map<String, String> prev, Map<String, Edge> usedEdge) {
         if (gScore.get(destination.getId()) == Double.MAX_VALUE) {
-            return null; 
+            return null;
         }
 
         List<Node> path = new ArrayList<>();
         String current = destination.getId();
-
         while (current != null) {
             path.add(graph.getNode(current));
             current = prev.get(current);
         }
-
         Collections.reverse(path);
 
         double totalDistance = 0;
-        for (int i = 0; i < path.size() - 1; i++) {
-            for (Edge edge : graph.getNeighbors(path.get(i).getId())) {
-                if (edge.getDestination().getId().equals(path.get(i + 1).getId())) {
-                    totalDistance += edge.getDistance();
-                    break;
-                }
-            }
+        String cur = destination.getId();
+        while (prev.containsKey(cur)) {
+            totalDistance += usedEdge.get(cur).getDistance();
+            cur = prev.get(cur);
         }
 
         return new Route(path, totalDistance, gScore.get(destination.getId()));

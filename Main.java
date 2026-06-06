@@ -166,23 +166,10 @@ public class Main {
         System.out.println(BOLD + "  FIND NEAREST LOCATION" + RESET);
         System.out.println();
 
-        System.out.print("  " + YELLOW + "Latitude  : " + RESET);
-        double lat;
-        try {
-            lat = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
-
-        System.out.print("  " + YELLOW + "Longitude : " + RESET);
-        double lon;
-        try {
-            lon = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
+        double lat = readDouble(sc, "Latitude  : ");
+        if (Double.isNaN(lat)) return;
+        double lon = readDouble(sc, "Longitude : ");
+        if (Double.isNaN(lon)) return;
 
         Node nearest = nav.findNearestNode(lat, lon);
         if (nearest != null) {
@@ -208,23 +195,10 @@ public class Main {
         System.out.print("  " + YELLOW + "Location Name : " + RESET);
         String name = sc.nextLine().trim();
 
-        System.out.print("  " + YELLOW + "Latitude      : " + RESET);
-        double lat;
-        try {
-            lat = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
-
-        System.out.print("  " + YELLOW + "Longitude     : " + RESET);
-        double lon;
-        try {
-            lon = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
+        double lat = readDouble(sc, "Latitude      : ");
+        if (Double.isNaN(lat)) return;
+        double lon = readDouble(sc, "Longitude     : ");
+        if (Double.isNaN(lon)) return;
 
         nav.addLocation(new Node(id, name, lat, lon));
         System.out.println("\n  " + GREEN + "Added: " + BOLD + name + RESET + GREEN
@@ -269,23 +243,10 @@ public class Main {
             return;
         }
 
-        System.out.print("  " + YELLOW + "Distance (km)     : " + RESET);
-        double dist;
-        try {
-            dist = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
-
-        System.out.print("  " + YELLOW + "Speed limit (km/h): " + RESET);
-        double speed;
-        try {
-            speed = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
+        double dist = readDouble(sc, "Distance (km)     : ");
+        if (Double.isNaN(dist)) return;
+        double speed = readDouble(sc, "Speed limit (km/h): ");
+        if (Double.isNaN(speed)) return;
 
         nav.addRoad(srcId, destId, dist, speed);
         System.out.println("\n  " + GREEN + "Road added: " + BOLD + srcId + " <-> " + destId
@@ -412,14 +373,8 @@ public class Main {
                     i + 1, catArray[i], count);
         }
         System.out.println();
-        System.out.print("  " + YELLOW + "Choose category (1-" + catArray.length + "): " + RESET);
-        int catChoice;
-        try {
-            catChoice = Integer.parseInt(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid choice." + RESET + "\n");
-            return;
-        }
+        int catChoice = readInt(sc, "Choose category (1-" + catArray.length + "): ");
+        if (catChoice == -1) return;
         if (catChoice < 1 || catChoice > catArray.length) {
             System.out.println("\n  " + RED + "Invalid choice." + RESET + "\n");
             return;
@@ -499,32 +454,12 @@ public class Main {
         System.out.print("  " + YELLOW + "Category       : " + RESET);
         String cat = sc.nextLine().trim().toUpperCase();
 
-        System.out.print("  " + YELLOW + "Rating (1-5)   : " + RESET);
-        double rating;
-        try {
-            rating = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
-
-        System.out.print("  " + YELLOW + "Latitude       : " + RESET);
-        double lat;
-        try {
-            lat = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
-
-        System.out.print("  " + YELLOW + "Longitude      : " + RESET);
-        double lon;
-        try {
-            lon = Double.parseDouble(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
-            return;
-        }
+        double rating = readDouble(sc, "Rating (1-5)   : ");
+        if (Double.isNaN(rating)) return;
+        double lat = readDouble(sc, "Latitude       : ");
+        if (Double.isNaN(lat)) return;
+        double lon = readDouble(sc, "Longitude      : ");
+        if (Double.isNaN(lon)) return;
 
         System.out.print("  " + YELLOW + "Nearest Node ID: " + RESET);
         String nearNode = sc.nextLine().trim().toUpperCase();
@@ -587,6 +522,26 @@ public class Main {
         }
         return nodes.get(0).getId() + "->...->" + nodes.get(nodes.size() - 1).getId()
                 + " (" + nodes.size() + " stops)";
+    }
+
+    private static double readDouble(Scanner sc, String prompt) {
+        System.out.print("  " + YELLOW + prompt + RESET);
+        try {
+            return Double.parseDouble(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid number. Please enter a numeric value." + RESET + "\n");
+            return Double.NaN;
+        }
+    }
+
+    private static int readInt(Scanner sc, String prompt) {
+        System.out.print("  " + YELLOW + prompt + RESET);
+        try {
+            return Integer.parseInt(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("\n  " + RED + "Invalid choice." + RESET + "\n");
+            return -1;
+        }
     }
 
     private static void printBanner() {
