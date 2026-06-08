@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-/**
- * Main - Interactive console UI for the Geospatial Routing & Navigation System.
- */
 public class Main {
 
     private static final RoutingStrategy DIJKSTRA = new DijkstraStrategy();
