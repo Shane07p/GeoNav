@@ -5,7 +5,12 @@ import model.Edge;
 import model.Node;
 import model.Route;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 /**
  * A* Search Algorithm — finds the FASTEST TIME path.
@@ -30,49 +35,40 @@ public class AStarStrategy implements RoutingStrategy {
     public Route findRoute(Graph graph, Node source, Node destination) {
         // we will track the g(n), f(n) and previous optimal node
         Map<String, Double> gScore = new HashMap<>();
-        Map<String, Double> fScore = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
-
-        Set<String> visited = new HashSet<>();
 
         // Priority queue: ordered by f-score
         PriorityQueue<NodeEntry> openSet = new PriorityQueue<>();
 
         for (Node node : graph.getAllNodes()) {
             gScore.put(node.getId(), Double.MAX_VALUE);
-            fScore.put(node.getId(), Double.MAX_VALUE);
         }
 
         gScore.put(source.getId(), 0.0);
-        fScore.put(source.getId(), heuristic(source, destination));
-        openSet.add(new NodeEntry(source.getId(), fScore.get(source.getId())));
+        openSet.add(new NodeEntry(source.getId(), heuristic(source, destination)));
 
         while (!openSet.isEmpty()) {
             NodeEntry current = openSet.poll();
             String currentId = current.nodeId;
 
-            if (visited.contains(currentId))
+            // stale entry: a shorter path to this node was already processed
+            if (current.priority > gScore.get(currentId) + heuristic(graph.getNode(currentId), destination))
                 continue;
-            visited.add(currentId);
 
             if (currentId.equals(destination.getId()))
                 break;
 
             for (Edge edge : graph.getNeighbors(currentId)) {
-                String neighborId = edge.getDestination().getId();
-                if (visited.contains(neighborId))
-                    continue;
-
                 double tentativeG = gScore.get(currentId) + edge.getTravelTime();
+                String neighborId = edge.getDestination().getId();
 
                 if (tentativeG < gScore.get(neighborId)) {
                     prev.put(neighborId, currentId);
                     usedEdge.put(neighborId, edge);
                     gScore.put(neighborId, tentativeG);
                     double h = heuristic(edge.getDestination(), destination);
-                    fScore.put(neighborId, tentativeG + h);
-                    openSet.add(new NodeEntry(neighborId, fScore.get(neighborId)));
+                    openSet.add(new NodeEntry(neighborId, tentativeG + h));
                 }
             }
         }

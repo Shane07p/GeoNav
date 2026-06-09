@@ -5,7 +5,12 @@ import model.Edge;
 import model.Node;
 import model.Route;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 /**
  * Dijkstra's Algorithm — finds the SHORTEST DISTANCE path.
@@ -28,7 +33,6 @@ public class DijkstraStrategy implements RoutingStrategy {
         Map<String, Double> dist = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
-        Set<String> visited = new HashSet<>();
         PriorityQueue<NodeEntry> queue = new PriorityQueue<>();
 
         for (Node node : graph.getAllNodes()) {
@@ -41,19 +45,15 @@ public class DijkstraStrategy implements RoutingStrategy {
             NodeEntry current = queue.poll();
             String currentId = current.nodeId;
 
-            if (visited.contains(currentId))
+            if (current.priority > dist.get(currentId))
                 continue;
-            visited.add(currentId);
 
             if (currentId.equals(destination.getId()))
                 break;
 
             for (Edge edge : graph.getNeighbors(currentId)) {
-                String neighborId = edge.getDestination().getId();
-                if (visited.contains(neighborId))
-                    continue;
-
                 double newDist = dist.get(currentId) + edge.getDistance();
+                String neighborId = edge.getDestination().getId();
                 if (newDist < dist.get(neighborId)) {
                     dist.put(neighborId, newDist);
                     prev.put(neighborId, currentId);
