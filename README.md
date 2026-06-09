@@ -7,53 +7,67 @@ A console-based geospatial routing engine built in Java. The system models a cit
 ## System Architecture
 
 ```mermaid
-graph TD
-    subgraph UI["Entry Point"]
-        MAIN["Main.java\nInteractive Console UI"]
-        LOADER["loader/SeedFileLoader\n─────────────────────\nload(system, path)\nvalidate + warn"]
+flowchart LR
+    subgraph ENTRY["Entry Point"]
+        direction TB
+        MAIN["Main.java\nConsole UI"]:::entry
+        LOADER["SeedFileLoader\nload · validate · warn"]:::entry
     end
 
-    subgraph ENGINE["engine/"]
-        NAV["NavigationSystem\n─────────────────────\nfindRoute()\nfindMultiStopRoute()\ncompareRoutes()\nfindNearestNode()\nfindNearestPOIs()\naddLocation() / addRoad()"]
+    subgraph ENGINE["Engine"]
+        NAV["NavigationSystem\nfindRoute · compareRoutes\naddLocation · addRoad\nfindNearestNode · findNearestPOIs"]:::engine
     end
 
-    subgraph STRATEGY["strategy/"]
-        IFACE["interface RoutingStrategy\n─────────────────────\nfindRoute(Graph, Node, Node)\ngetStrategyName()"]
-        DIJK["DijkstraStrategy\nShortest Distance\nO((V+E) log V)"]
-        ASTAR["AStarStrategy\nFastest Time\nO((V+E) log V)"]
+    subgraph ALGORITHMS["Algorithms  strategy/"]
+        direction TB
+        IFACE["RoutingStrategy\ninterface"]:::iface
+        DIJK["DijkstraStrategy\nShortest Distance\nO((V+E) log V)"]:::algo
+        ASTAR["AStarStrategy\nFastest Time\nO((V+E) log V)"]:::algo
+        IFACE --> DIJK
+        IFACE --> ASTAR
     end
 
-    subgraph GRAPH["graph/"]
-        G["Graph\n─────────────────────\naddNode()  O(1)\naddEdge()  O(1)\ngetNeighbors()  O(1)\ngetEdgeCount()  O(1)\nremoveNode()  O(V+E)"]
+    subgraph DATASTRUCT["Data Structures"]
+        direction TB
+        G["Graph\nO(1) add · O(V+E) remove\nedgeCount O(1)"]:::struct
+        QT["QuadTree\nNearest Node · O(log N)"]:::struct
+        POIQT["POIQuadTree\nK-Nearest POI · O(K log N)"]:::struct
     end
 
-    subgraph MODEL["model/"]
-        NODE["Node\nid, name, lat, lon"]
-        EDGE["Edge\nsrc, dest, distance, speedLimit\ngetTravelTime()"]
-        ROUTE["Route\nnodes, totalDistance, totalTime"]
-        POI["PointOfInterest\nid, name, category, rating"]
+    subgraph MODEL["Model  model/"]
+        direction TB
+        NODE["Node\nid · name · lat · lon"]:::model
+        EDGE["Edge\ndist · speed · travelTime"]:::model
+        ROUTE["Route\npath · distance · time"]:::model
+        POI["PointOfInterest\nname · category · rating"]:::model
     end
 
-    subgraph SPATIAL["spatial/"]
-        QT["QuadTree\nNearest Node\nO(log N) avg"]
-        POIQT["POIQuadTree\nK-Nearest POI\nO(K log N) avg"]
-    end
-
-    MAIN  --> LOADER
+    MAIN   --> LOADER
     LOADER --> NAV
-    MAIN  --> NAV
-    NAV   --> G
-    NAV   --> QT
-    NAV   --> POIQT
-    NAV   --> IFACE
-    IFACE --> DIJK
-    IFACE --> ASTAR
-    DIJK  --> G
-    ASTAR --> G
-    G     --> NODE
-    G     --> EDGE
-    NAV   --> ROUTE
-    NAV   --> POI
+    MAIN   --> NAV
+    NAV    --> IFACE
+    NAV    --> G
+    NAV    --> QT
+    NAV    --> POIQT
+    DIJK   --> G
+    ASTAR  --> G
+    G      --> NODE
+    G      --> EDGE
+    NAV    --> ROUTE
+    NAV    --> POI
+
+    classDef entry  fill:#dbeafe,stroke:#3b82f6,color:#000
+    classDef engine fill:#d1fae5,stroke:#10b981,color:#000
+    classDef iface  fill:#f3f4f6,stroke:#6b7280,color:#000
+    classDef algo   fill:#fef3c7,stroke:#f59e0b,color:#000
+    classDef struct fill:#ede9fe,stroke:#8b5cf6,color:#000
+    classDef model  fill:#fce7f3,stroke:#ec4899,color:#000
+
+    style ENTRY      fill:#eff6ff,stroke:#3b82f6
+    style ENGINE     fill:#ecfdf5,stroke:#10b981
+    style ALGORITHMS fill:#fffbeb,stroke:#f59e0b
+    style DATASTRUCT fill:#f5f3ff,stroke:#8b5cf6
+    style MODEL      fill:#fdf2f8,stroke:#ec4899
 ```
 
 ---
