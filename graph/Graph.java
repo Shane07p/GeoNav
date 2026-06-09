@@ -28,13 +28,12 @@ public class Graph {
         adjacency.putIfAbsent(node.getId(), new ArrayList<>());
     }
 
-    public void addEdge(Node source, Node destination, double distance, double speedLimit) {
-        // birdirectional Edge
-        Edge forward = new Edge(source, destination, distance, speedLimit);
-        Edge reverse = new Edge(destination, source, distance, speedLimit);
+    public void addEdge(Node src, Node dest, double distance, double speedLimit) {
+        Edge forward = new Edge(src, dest, distance, speedLimit);
+        Edge reverse = new Edge(dest, src, distance, speedLimit);
 
-        adjacency.get(source.getId()).add(forward);
-        adjacency.get(destination.getId()).add(reverse);
+        adjacency.get(src.getId()).add(forward);
+        adjacency.get(dest.getId()).add(reverse);
         edgeCount++;
     }
 
@@ -54,9 +53,8 @@ public class Graph {
 
     // Getters
 
-    public List<Edge> getNeighbors(String nodeId) {
-        return adjacency.getOrDefault(nodeId, Collections.emptyList()); // return empty list to not get
-                                                                        // NullPointerException
+    public List<Edge> getNeighbors(String id) {
+        return adjacency.getOrDefault(id, Collections.emptyList());
     }
 
     public Node getNode(String id) {

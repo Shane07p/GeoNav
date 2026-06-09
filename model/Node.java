@@ -21,22 +21,10 @@ public class Node {
     }
 
     // Getters
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
 
     @Override
     public boolean equals(Object o) {
@@ -49,9 +37,7 @@ public class Node {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    public int hashCode() { return Objects.hash(id); }
 
     @Override
     public String toString() {

@@ -11,15 +11,7 @@ import model.Route;
 
 public interface RoutingStrategy {
 
-    /**
-     * Find a route between two nodes in the graph.
-     *
-     * @param graph       the map graph
-     * @param source      starting node
-     * @param destination target node
-     * @return a Route object, or null if no path exists
-     */
-    Route findRoute(Graph graph, Node source, Node destination);
+    Route findRoute(Graph graph, Node src, Node dest);
 
     String getStrategyName();
 }

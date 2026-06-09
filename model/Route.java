@@ -20,7 +20,7 @@ public class Route {
     }
 
     // Getters
-
+    
     public List<Node> getNodes() {
         return nodes;
     }
