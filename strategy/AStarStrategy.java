@@ -33,12 +33,9 @@ public class AStarStrategy implements RoutingStrategy {
 
     @Override
     public Route findRoute(Graph graph, Node source, Node destination) {
-        // we will track the g(n), f(n) and previous optimal node
         Map<String, Double> gScore = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
-
-        // Priority queue: ordered by f-score
         PriorityQueue<NodeEntry> queue = new PriorityQueue<>();
 
         for (Node node : graph.getAllNodes()) {
@@ -49,26 +46,24 @@ public class AStarStrategy implements RoutingStrategy {
         queue.add(new NodeEntry(source.getId(), heuristic(source, destination)));
 
         while (!queue.isEmpty()) {
-            NodeEntry current = queue.poll();
-            String currentId = current.nodeId;
+            NodeEntry e = queue.poll();
+            String u = e.nodeId;
 
             // stale entry: a shorter path to this node was already processed
-            if (current.priority > gScore.get(currentId) + heuristic(graph.getNode(currentId), destination))
+            if (e.priority > gScore.get(u) + heuristic(graph.getNode(u), destination))
                 continue;
 
-            if (currentId.equals(destination.getId()))
+            if (u.equals(destination.getId()))
                 break;
 
-            for (Edge edge : graph.getNeighbors(currentId)) {
-                double tentativeG = gScore.get(currentId) + edge.getTravelTime();
-                String neighborId = edge.getDestination().getId();
-
-                if (tentativeG < gScore.get(neighborId)) {
-                    prev.put(neighborId, currentId);
-                    usedEdge.put(neighborId, edge);
-                    gScore.put(neighborId, tentativeG);
-                    double h = heuristic(edge.getDestination(), destination);
-                    queue.add(new NodeEntry(neighborId, tentativeG + h));
+            for (Edge edge : graph.getNeighbors(u)) {
+                String v  = edge.getDestination().getId();
+                double ng = gScore.get(u) + edge.getTravelTime();
+                if (ng < gScore.get(v)) {
+                    prev.put(v, u);
+                    usedEdge.put(v, edge);
+                    gScore.put(v, ng);
+                    queue.add(new NodeEntry(v, ng + heuristic(edge.getDestination(), destination)));
                 }
             }
         }
@@ -76,17 +71,10 @@ public class AStarStrategy implements RoutingStrategy {
         return reconstructRoute(graph, source, destination, gScore, prev, usedEdge);
     }
 
-    // ── Haversine Heuristic ──────────────────────────────────
-
-    /**
-     * Estimates remaining travel time using the haversine (great-circle) distance
-     * divided by the assumed maximum speed.
-     * This is an admissible heuristic: it never overestimates the true travel time.
-     */
     private double heuristic(Node a, Node b) {
-        double distKm = haversineDistance(a.getLatitude(), a.getLongitude(),
+        double d = haversineDistance(a.getLatitude(), a.getLongitude(),
                 b.getLatitude(), b.getLongitude());
-        return distKm / MAX_SPEED_KMH;
+        return d / MAX_SPEED_KMH;
     }
 
     /**
@@ -116,21 +104,21 @@ public class AStarStrategy implements RoutingStrategy {
         }
 
         List<Node> path = new ArrayList<>();
-        String current = destination.getId();
-        while (current != null) {
-            path.add(graph.getNode(current));
-            current = prev.get(current);
+        String u = destination.getId();
+        while (u != null) {
+            path.add(graph.getNode(u));
+            u = prev.get(u);
         }
         Collections.reverse(path);
 
-        double totalDistance = 0;
-        String cur = destination.getId();
-        while (prev.containsKey(cur)) {
-            totalDistance += usedEdge.get(cur).getDistance();
-            cur = prev.get(cur);
+        double totalDist = 0;
+        u = destination.getId();
+        while (prev.containsKey(u)) {
+            totalDist += usedEdge.get(u).getDistance();
+            u = prev.get(u);
         }
 
-        return new Route(path, totalDistance, gScore.get(destination.getId()));
+        return new Route(path, totalDist, gScore.get(destination.getId()));
     }
 
     // priority queue will keep the top on the basis of a nodes priority

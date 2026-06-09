@@ -42,23 +42,23 @@ public class DijkstraStrategy implements RoutingStrategy {
         queue.add(new NodeEntry(source.getId(), 0.0));
 
         while (!queue.isEmpty()) {
-            NodeEntry current = queue.poll();
-            String currentId = current.nodeId;
+            NodeEntry e = queue.poll();
+            String u = e.nodeId;
 
-            if (current.priority > dist.get(currentId))
+            if (e.priority > dist.get(u))
                 continue;
 
-            if (currentId.equals(destination.getId()))
+            if (u.equals(destination.getId()))
                 break;
 
-            for (Edge edge : graph.getNeighbors(currentId)) {
-                double newDist = dist.get(currentId) + edge.getDistance();
-                String neighborId = edge.getDestination().getId();
-                if (newDist < dist.get(neighborId)) {
-                    dist.put(neighborId, newDist);
-                    prev.put(neighborId, currentId);
-                    usedEdge.put(neighborId, edge);
-                    queue.add(new NodeEntry(neighborId, newDist));
+            for (Edge edge : graph.getNeighbors(u)) {
+                String v  = edge.getDestination().getId();
+                double nd = dist.get(u) + edge.getDistance();
+                if (nd < dist.get(v)) {
+                    dist.put(v, nd);
+                    prev.put(v, u);
+                    usedEdge.put(v, edge);
+                    queue.add(new NodeEntry(v, nd));
                 }
             }
         }
@@ -73,18 +73,18 @@ public class DijkstraStrategy implements RoutingStrategy {
         }
 
         List<Node> path = new ArrayList<>();
-        String current = destination.getId();
-        while (current != null) {
-            path.add(graph.getNode(current));
-            current = prev.get(current);
+        String u = destination.getId();
+        while (u != null) {
+            path.add(graph.getNode(u));
+            u = prev.get(u);
         }
         Collections.reverse(path);
 
         double totalTime = 0;
-        String cur = destination.getId();
-        while (prev.containsKey(cur)) {
-            totalTime += usedEdge.get(cur).getTravelTime();
-            cur = prev.get(cur);
+        u = destination.getId();
+        while (prev.containsKey(u)) {
+            totalTime += usedEdge.get(u).getTravelTime();
+            u = prev.get(u);
         }
 
         return new Route(path, dist.get(destination.getId()), totalTime);
