@@ -443,15 +443,33 @@ POI distances shown to the user use the **Haversine formula** (real km), while Q
 How the 14-node city is divided into quadrants for nearest-node lookup.
 
 ```mermaid
-graph TD
-    ROOT["QuadTree Root\nlat 12.84-13.21  |  lon 77.56-77.80\n14 nodes total"]
+flowchart LR
+    ROOT["QuadTree Root\nlat 12.84–13.21 · lon 77.56–77.80\n14 nodes total"]:::root
 
-    ROOT --> NW["NW Quadrant\nOLD, NTH, CST, GDN\nhigh-lat, low-lon"]
-    ROOT --> NE["NE Quadrant\nAIR, HLV, MKT\nhigh-lat, high-lon"]
-    ROOT --> SW["SW Quadrant\nUNI, STN, CTR\nlow-lat, low-lon"]
-    ROOT --> SE["SE Quadrant\nLKS, IND, THB, PRT\nlow-lat, high-lon"]
+    subgraph QUADS["Quadrants"]
+        direction TB
+        NW["NW · high-lat / low-lon\nOLD · NTH · CST · GDN"]:::nw
+        NE["NE · high-lat / high-lon\nAIR · HLV · MKT"]:::ne
+        SW["SW · low-lat  / low-lon\nUNI · STN · CTR"]:::sw
+        SE["SE · low-lat  / high-lon\nLKS · IND · THB · PRT"]:::se
+    end
 
-    NW --> NOTE["Branch-and-bound pruning:\nfindNearest() skips any quadrant whose\nbounding box is farther than the\ncurrent best candidate distance"]
+    NOTE["Branch-and-bound pruning\nfindNearest() skips any quadrant\nwhose bounding box is farther\nthan current best candidate"]:::note
+
+    ROOT --> NW
+    ROOT --> NE
+    ROOT --> SW
+    ROOT --> SE
+    QUADS -.-> NOTE
+
+    classDef root fill:#dbeafe,stroke:#3b82f6,color:#000
+    classDef nw   fill:#d1fae5,stroke:#10b981,color:#000
+    classDef ne   fill:#fef3c7,stroke:#f59e0b,color:#000
+    classDef sw   fill:#ede9fe,stroke:#8b5cf6,color:#000
+    classDef se   fill:#fce7f3,stroke:#ec4899,color:#000
+    classDef note fill:#f3f4f6,stroke:#64748b,color:#374151
+
+    style QUADS fill:#f8fafc,stroke:#94a3b8
 ```
 
 ---
