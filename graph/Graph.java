@@ -52,24 +52,9 @@ public class Graph {
     }
 
     // Getters
-
-    public List<Edge> getNeighbors(String id) {
-        return adjacency.getOrDefault(id, Collections.emptyList());
-    }
-
-    public Node getNode(String id) {
-        return nodes.get(id);
-    }
-
-    public Collection<Node> getAllNodes() {
-        return nodes.values();
-    }
-
-    public int getNodeCount() {
-        return nodes.size();
-    }
-
-    public int getEdgeCount() {
-        return edgeCount;
-    }
+    public List<Edge> getNeighbors(String id) { return adjacency.getOrDefault(id, Collections.emptyList()); }
+    public Node getNode(String id) { return nodes.get(id); }
+    public Collection<Node> getAllNodes() { return nodes.values(); }
+    public int getNodeCount() { return nodes.size(); }
+    public int getEdgeCount() { return edgeCount; }
 }
