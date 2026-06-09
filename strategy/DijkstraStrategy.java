@@ -15,7 +15,7 @@ import java.util.PriorityQueue;
 /**
  * Dijkstra's Algorithm — finds the SHORTEST DISTANCE path.
  *
- * Uses a min-priority-queue keyed on cumulative distance.
+ * Uses a min-priority-pq keyed on cumulative distance.
  * Guarantees the optimal shortest-distance path in a non-negative weighted
  * graph.
  */
@@ -28,27 +28,27 @@ public class DijkstraStrategy implements RoutingStrategy {
     }
 
     @Override
-    public Route findRoute(Graph graph, Node source, Node destination) {
+    public Route findRoute(Graph graph, Node src, Node dest) {
 
         Map<String, Double> dist = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
-        PriorityQueue<NodeEntry> queue = new PriorityQueue<>();
+        PriorityQueue<NodeEntry> pq = new PriorityQueue<>();
 
         for (Node node : graph.getAllNodes()) {
             dist.put(node.getId(), Double.MAX_VALUE);
         }
-        dist.put(source.getId(), 0.0);
-        queue.add(new NodeEntry(source.getId(), 0.0));
+        dist.put(src.getId(), 0.0);
+        pq.add(new NodeEntry(src.getId(), 0.0));
 
-        while (!queue.isEmpty()) {
-            NodeEntry e = queue.poll();
+        while (!pq.isEmpty()) {
+            NodeEntry e = pq.poll();
             String u = e.nodeId;
 
             if (e.priority > dist.get(u))
                 continue;
 
-            if (u.equals(destination.getId()))
+            if (u.equals(dest.getId()))
                 break;
 
             for (Edge edge : graph.getNeighbors(u)) {
@@ -58,22 +58,22 @@ public class DijkstraStrategy implements RoutingStrategy {
                     dist.put(v, nd);
                     prev.put(v, u);
                     usedEdge.put(v, edge);
-                    queue.add(new NodeEntry(v, nd));
+                    pq.add(new NodeEntry(v, nd));
                 }
             }
         }
 
-        return reconstructRoute(graph, source, destination, dist, prev, usedEdge);
+        return reconstructRoute(graph, src, dest, dist, prev, usedEdge);
     }
 
-    protected Route reconstructRoute(Graph graph, Node source, Node destination,
+    protected Route reconstructRoute(Graph graph, Node src, Node dest,
             Map<String, Double> dist, Map<String, String> prev, Map<String, Edge> usedEdge) {
-        if (dist.get(destination.getId()) == Double.MAX_VALUE) {
+        if (dist.get(dest.getId()) == Double.MAX_VALUE) {
             return null;
         }
 
         List<Node> path = new ArrayList<>();
-        String u = destination.getId();
+        String u = dest.getId();
         while (u != null) {
             path.add(graph.getNode(u));
             u = prev.get(u);
@@ -81,17 +81,17 @@ public class DijkstraStrategy implements RoutingStrategy {
         Collections.reverse(path);
 
         double totalTime = 0;
-        u = destination.getId();
+        u = dest.getId();
         while (prev.containsKey(u)) {
             totalTime += usedEdge.get(u).getTravelTime();
             u = prev.get(u);
         }
 
-        return new Route(path, dist.get(destination.getId()), totalTime);
+        return new Route(path, dist.get(dest.getId()), totalTime);
     }
 
     // NodeEntry class is independent of its outer class so we have made it static
-    // it implements comparable for compareTo function in priority queue
+    // it implements comparable for compareTo function in priority pq
     protected static class NodeEntry implements Comparable<NodeEntry> {
         String nodeId;
         double priority;

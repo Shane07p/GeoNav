@@ -15,8 +15,8 @@ import java.util.PriorityQueue;
 /**
  * A* Search Algorithm — finds the FASTEST TIME path.
  *
- * Uses a min-priority-queue keyed on f(n) = g(n) + h(n), where:
- * - g(n) = actual travel time from source to n
+ * Uses a min-priority-pq keyed on f(n) = g(n) + h(n), where:
+ * - g(n) = actual travel time from src to n
  * - h(n) = heuristic estimate of remaining time (haversine distance / max speed)
  * The haversine heuristic is admissible (never overestimates), guaranteeing optimality.
  */
@@ -32,28 +32,28 @@ public class AStarStrategy implements RoutingStrategy {
     }
 
     @Override
-    public Route findRoute(Graph graph, Node source, Node destination) {
+    public Route findRoute(Graph graph, Node src, Node dest) {
         Map<String, Double> gScore = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
-        PriorityQueue<NodeEntry> queue = new PriorityQueue<>();
+        PriorityQueue<NodeEntry> pq = new PriorityQueue<>();
 
         for (Node node : graph.getAllNodes()) {
             gScore.put(node.getId(), Double.MAX_VALUE);
         }
 
-        gScore.put(source.getId(), 0.0);
-        queue.add(new NodeEntry(source.getId(), heuristic(source, destination)));
+        gScore.put(src.getId(), 0.0);
+        pq.add(new NodeEntry(src.getId(), heuristic(src, dest)));
 
-        while (!queue.isEmpty()) {
-            NodeEntry e = queue.poll();
+        while (!pq.isEmpty()) {
+            NodeEntry e = pq.poll();
             String u = e.nodeId;
 
             // stale entry: a shorter path to this node was already processed
-            if (e.priority > gScore.get(u) + heuristic(graph.getNode(u), destination))
+            if (e.priority > gScore.get(u) + heuristic(graph.getNode(u), dest))
                 continue;
 
-            if (u.equals(destination.getId()))
+            if (u.equals(dest.getId()))
                 break;
 
             for (Edge edge : graph.getNeighbors(u)) {
@@ -63,12 +63,12 @@ public class AStarStrategy implements RoutingStrategy {
                     prev.put(v, u);
                     usedEdge.put(v, edge);
                     gScore.put(v, ng);
-                    queue.add(new NodeEntry(v, ng + heuristic(edge.getDestination(), destination)));
+                    pq.add(new NodeEntry(v, ng + heuristic(edge.getDestination(), dest)));
                 }
             }
         }
 
-        return reconstructRoute(graph, source, destination, gScore, prev, usedEdge);
+        return reconstructRoute(graph, src, dest, gScore, prev, usedEdge);
     }
 
     private double heuristic(Node a, Node b) {
@@ -97,14 +97,14 @@ public class AStarStrategy implements RoutingStrategy {
         return R * c;
     }
 
-    private Route reconstructRoute(Graph graph, Node source, Node destination,
+    private Route reconstructRoute(Graph graph, Node src, Node dest,
             Map<String, Double> gScore, Map<String, String> prev, Map<String, Edge> usedEdge) {
-        if (gScore.get(destination.getId()) == Double.MAX_VALUE) {
+        if (gScore.get(dest.getId()) == Double.MAX_VALUE) {
             return null;
         }
 
         List<Node> path = new ArrayList<>();
-        String u = destination.getId();
+        String u = dest.getId();
         while (u != null) {
             path.add(graph.getNode(u));
             u = prev.get(u);
@@ -112,16 +112,16 @@ public class AStarStrategy implements RoutingStrategy {
         Collections.reverse(path);
 
         double totalDist = 0;
-        u = destination.getId();
+        u = dest.getId();
         while (prev.containsKey(u)) {
             totalDist += usedEdge.get(u).getDistance();
             u = prev.get(u);
         }
 
-        return new Route(path, totalDist, gScore.get(destination.getId()));
+        return new Route(path, totalDist, gScore.get(dest.getId()));
     }
 
-    // priority queue will keep the top on the basis of a nodes priority
+    // priority pq will keep the top on the basis of a nodes priority
     private static class NodeEntry implements Comparable<NodeEntry> {
         String nodeId;
         double priority;
