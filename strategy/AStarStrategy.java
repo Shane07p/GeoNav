@@ -39,17 +39,17 @@ public class AStarStrategy implements RoutingStrategy {
         Map<String, Edge>   usedEdge = new HashMap<>();
 
         // Priority queue: ordered by f-score
-        PriorityQueue<NodeEntry> openSet = new PriorityQueue<>();
+        PriorityQueue<NodeEntry> queue = new PriorityQueue<>();
 
         for (Node node : graph.getAllNodes()) {
             gScore.put(node.getId(), Double.MAX_VALUE);
         }
 
         gScore.put(source.getId(), 0.0);
-        openSet.add(new NodeEntry(source.getId(), heuristic(source, destination)));
+        queue.add(new NodeEntry(source.getId(), heuristic(source, destination)));
 
-        while (!openSet.isEmpty()) {
-            NodeEntry current = openSet.poll();
+        while (!queue.isEmpty()) {
+            NodeEntry current = queue.poll();
             String currentId = current.nodeId;
 
             // stale entry: a shorter path to this node was already processed
@@ -68,7 +68,7 @@ public class AStarStrategy implements RoutingStrategy {
                     usedEdge.put(neighborId, edge);
                     gScore.put(neighborId, tentativeG);
                     double h = heuristic(edge.getDestination(), destination);
-                    openSet.add(new NodeEntry(neighborId, tentativeG + h));
+                    queue.add(new NodeEntry(neighborId, tentativeG + h));
                 }
             }
         }
