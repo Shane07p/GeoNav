@@ -275,35 +275,46 @@ Let **V** = number of nodes (vertices), **E** = number of edges (roads).
 
 Dijkstra and A\* share the same priority-queue skeleton. The difference is the **edge weight definition** and the **heuristic term** added to the priority.
 
+**Dijkstra — Shortest Distance**
+
 ```mermaid
 flowchart LR
-    subgraph D["Dijkstra — Shortest Distance"]
-        direction TB
-        D1([Source\ndist = 0]) --> D2[Push to min-heap\nby distance]
-        D2 --> D3{Heap empty?}
-        D3 -->|No| D4[Pop node u\nmin distance]
-        D4 --> D5{u == dest?}
-        D5 -->|Yes| D8([Return Route])
-        D5 -->|No| D6{Visited?}
-        D6 -->|Yes| D3
-        D6 -->|No| D7["For each neighbor v:\nnewDist = dist_u + edge.km\nif newDist < dist_v: update, push"]
-        D7 --> D3
-        D3 -->|Yes| D9([No path])
-    end
+    D1([Source\ndist = 0]):::term --> D2[Push to\nmin-heap]:::action
+    D2 --> D3{Heap\nempty?}:::dec
+    D3 -->|Yes| D9([No path]):::bad
+    D3 -->|No| D4[Pop u\nmin dist]:::action
+    D4 --> D5{u = dest?}:::dec
+    D5 -->|Yes| D8([Return Route]):::term
+    D5 -->|No| D6{Visited?}:::dec
+    D6 -->|Yes| D3
+    D6 -->|No| D7["Relax neighbors\nnewDist = dist_u + km\nif better → update + push"]:::action
+    D7 --> D3
 
-    subgraph A["A* — Fastest Time"]
-        direction TB
-        A1([Source\ng = 0\nf = h_source]) --> A2[Push to min-heap\nby f-score]
-        A2 --> A3{Heap empty?}
-        A3 -->|No| A4[Pop node u\nmin f-score]
-        A4 --> A5{u == dest?}
-        A5 -->|Yes| A8([Return Route])
-        A5 -->|No| A6{Visited?}
-        A6 -->|Yes| A3
-        A6 -->|No| A7["For each neighbor v:\ng_new = g_u + edge.km/speed\nh = haversine(v, dest) / 60\nf = g_new + h\nif g_new < g_v: update, push"]
-        A7 --> A3
-        A3 -->|Yes| A9([No path])
-    end
+    classDef term   fill:#d1e7dd,stroke:#198754,color:#000
+    classDef action fill:#cfe2ff,stroke:#0d6efd,color:#000
+    classDef dec    fill:#fff3cd,stroke:#ffc107,color:#000
+    classDef bad    fill:#f8d7da,stroke:#dc3545,color:#000
+```
+
+**A\* — Fastest Time**
+
+```mermaid
+flowchart LR
+    A1([Source\ng=0, f=h]):::term --> A2[Push to\nmin-heap]:::action
+    A2 --> A3{Heap\nempty?}:::dec
+    A3 -->|Yes| A9([No path]):::bad
+    A3 -->|No| A4[Pop u\nmin f-score]:::action
+    A4 --> A5{u = dest?}:::dec
+    A5 -->|Yes| A8([Return Route]):::term
+    A5 -->|No| A6{Visited?}:::dec
+    A6 -->|Yes| A3
+    A6 -->|No| A7["g_new = g_u + km/speed\nh = haversine(v,dest) / 60\nf = g_new + h\nif better → update + push"]:::action
+    A7 --> A3
+
+    classDef term   fill:#d1e7dd,stroke:#198754,color:#000
+    classDef action fill:#cfe2ff,stroke:#0d6efd,color:#000
+    classDef dec    fill:#fff3cd,stroke:#ffc107,color:#000
+    classDef bad    fill:#f8d7da,stroke:#dc3545,color:#000
 ```
 
 ---
