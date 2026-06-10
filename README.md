@@ -261,7 +261,7 @@ Let **V** = number of nodes (vertices), **E** = number of edges (roads).
 |-----------|:------------:|:----------:|-------------|
 | Insert | **O(log V)** | **O(V)** | Recursively subdivides; degrades if all points are co-located |
 | Nearest Neighbor | **O(log V)** | **O(V)** | Branch-and-bound pruning skips irrelevant quadrants |
-| K-Nearest (POI) | **O(K log N)** | **O(N)** | Max-heap of size K with branch-and-bound pruning per category |
+| K-Nearest (POI) | **O(K log N)** | **O(N)** | Max-heap of size K with branch-and-bound pruning; each eviction O(log K) — heap entry carries the POI directly |
 
 ### Routing Algorithms
 
@@ -409,27 +409,27 @@ Each Point of Interest belongs to a **category** (HOTEL, RESTAURANT, MALL, THEAT
 
 ### K-Nearest Algorithm (Max-Heap)
 
-The search maintains a max-heap of size K (farthest of the K at the top):
+The search maintains a max-heap of size K (farthest of the K at the top). Each heap entry stores **(distance, POI)** together — no secondary list needed:
 
 ```
 findKNearest(lat, lon, k):
-    maxHeap = PriorityQueue (farthest-first)
+    maxHeap = PriorityQueue<(dist, POI)>  // farthest-first; entry carries the POI
 
     for each POI p in this leaf:
         dist = euclidean(lat, lon, p.lat, p.lon)
         if heap.size < k:
-            heap.add(p, dist)
+            heap.add((dist, p))
         else if dist < heap.peek().dist:
-            heap.poll()       // remove farthest
-            heap.add(p, dist) // add closer one
+            heap.poll()         // removes farthest POI and its distance atomically — O(log K)
+            heap.add((dist, p))
 
     if divided:
-        // PRUNE: skip quadrants whose closest point
+        // PRUNE: skip quadrants whose closest possible point
         // is farther than current K-th best
         recurse into children
 ```
 
-The pruning step is what makes this `O(K log N)` instead of `O(N)`.
+The pruning step is what makes this `O(K log N)` instead of `O(N)`. Each eviction is `O(log K)` — the POI rides in the heap entry, so `poll()` removes both atomically with no secondary scan.
 
 ### Distance Display
 
