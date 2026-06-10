@@ -58,55 +58,36 @@ public class POIQuadTree {
      */
 
     public List<PointOfInterest> findKNearest(double lat, double lon, int k) {
-        PriorityQueue<double[]> maxHeap = new PriorityQueue<>(
-            (a, b) -> Double.compare(b[0], a[0])
+        PriorityQueue<Map.Entry<Double, PointOfInterest>> maxHeap = new PriorityQueue<>(
+            (a, b) -> Double.compare(b.getKey(), a.getKey())
         );
-        List<PointOfInterest> poiList = new ArrayList<>();
-
-        findKNearestHelper(lat, lon, k, maxHeap, poiList);
-
-        List<PointOfInterest> result = new ArrayList<>(poiList);
-        result.sort((a, b) -> {
-            double da = euclideanDist(lat, lon, a.getLatitude(), a.getLongitude());
-            double db = euclideanDist(lat, lon, b.getLatitude(), b.getLongitude());
-            return Double.compare(da, db);
-        });
-
+        findKNearestHelper(lat, lon, k, maxHeap);
+        List<PointOfInterest> result = new ArrayList<>();
+        while (!maxHeap.isEmpty()) result.add(maxHeap.poll().getValue());
+        result.sort((a, b) -> Double.compare(
+            euclideanDist(lat, lon, a.getLatitude(), a.getLongitude()),
+            euclideanDist(lat, lon, b.getLatitude(), b.getLongitude())
+        ));
         return result;
     }
 
-    private void findKNearestHelper(double lat, double lon, int k, PriorityQueue<double[]> maxHeap, List<PointOfInterest> poiList) {
-        // Prune: if this quad's closest point is farther than our K-th best
-        if (maxHeap.size() >= k && distToQuad(lat, lon) >= maxHeap.peek()[0]) {
-            return;
-        }
-
+    private void findKNearestHelper(double lat, double lon, int k,
+            PriorityQueue<Map.Entry<Double, PointOfInterest>> maxHeap) {
+        if (maxHeap.size() >= k && distToQuad(lat, lon) >= maxHeap.peek().getKey()) return;
         for (PointOfInterest p : points) {
             double d = euclideanDist(lat, lon, p.getLatitude(), p.getLongitude());
             if (maxHeap.size() < k) {
-                maxHeap.add(new double[]{d});
-                poiList.add(p);
-            } else if (d < maxHeap.peek()[0]) {
-                // Remove the farthest POI
-                double farthestDist = maxHeap.poll()[0];
-                // Find and remove the POI with that distance from poiList
-                for (int i = poiList.size() - 1; i >= 0; i--) {
-                    double di = euclideanDist(lat, lon, poiList.get(i).getLatitude(), poiList.get(i).getLongitude());
-                    if (Math.abs(di - farthestDist) < 1e-12) {
-                        poiList.remove(i);
-                        break;
-                    }
-                }
-                maxHeap.add(new double[]{d});
-                poiList.add(p);
+                maxHeap.add(Map.entry(d, p));
+            } else if (d < maxHeap.peek().getKey()) {
+                maxHeap.poll();
+                maxHeap.add(Map.entry(d, p));
             }
         }
-
         if (divided) {
-            northwest.findKNearestHelper(lat, lon, k, maxHeap, poiList);
-            northeast.findKNearestHelper(lat, lon, k, maxHeap, poiList);
-            southwest.findKNearestHelper(lat, lon, k, maxHeap, poiList);
-            southeast.findKNearestHelper(lat, lon, k, maxHeap, poiList);
+            northwest.findKNearestHelper(lat, lon, k, maxHeap);
+            northeast.findKNearestHelper(lat, lon, k, maxHeap);
+            southwest.findKNearestHelper(lat, lon, k, maxHeap);
+            southeast.findKNearestHelper(lat, lon, k, maxHeap);
         }
     }
     
