@@ -36,17 +36,17 @@ public class AStarStrategy implements RoutingStrategy {
         Map<String, Double> gScore = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
-        PriorityQueue<NodeEntry> pq = new PriorityQueue<>();
+        PriorityQueue<DijkstraStrategy.NodeEntry> pq = new PriorityQueue<>();
 
         for (Node node : graph.getAllNodes()) {
             gScore.put(node.getId(), Double.MAX_VALUE);
         }
 
         gScore.put(src.getId(), 0.0);
-        pq.add(new NodeEntry(src.getId(), heuristic(src, dest)));
+        pq.add(new DijkstraStrategy.NodeEntry(src.getId(), heuristic(src, dest)));
 
         while (!pq.isEmpty()) {
-            NodeEntry e = pq.poll();
+            DijkstraStrategy.NodeEntry e = pq.poll();
             String u = e.nodeId;
 
             // stale entry: a shorter path to this node was already processed
@@ -63,7 +63,7 @@ public class AStarStrategy implements RoutingStrategy {
                     prev.put(v, u);
                     usedEdge.put(v, edge);
                     gScore.put(v, ng);
-                    pq.add(new NodeEntry(v, ng + heuristic(edge.getDestination(), dest)));
+                    pq.add(new DijkstraStrategy.NodeEntry(v, ng + heuristic(edge.getDestination(), dest)));
                 }
             }
         }
@@ -121,19 +121,4 @@ public class AStarStrategy implements RoutingStrategy {
         return new Route(path, totalDist, gScore.get(dest.getId()));
     }
 
-    // priority pq will keep the top on the basis of a nodes priority
-    private static class NodeEntry implements Comparable<NodeEntry> {
-        String nodeId;
-        double priority;
-
-        NodeEntry(String nodeId, double priority) {
-            this.nodeId = nodeId;
-            this.priority = priority;
-        }
-
-        @Override
-        public int compareTo(NodeEntry other) {
-            return Double.compare(this.priority, other.priority);
-        }
-    }
 }

@@ -20,20 +20,11 @@ public class Route {
     }
 
     // Getters
-    
-    public List<Node> getNodes() {
-        return nodes;
-    }
+    public List<Node> getNodes()        { return nodes; }
+    public double getTotalDistance()    { return totalDistance; }
+    public double getTotalTime()        { return totalTime; }
 
-    public double getTotalDistance() {
-        return totalDistance;
-    }
-
-    public double getTotalTime() {
-        return totalTime;
-    }
-
-    // Display 
+    // Display
 
     @Override
     public String toString() {
