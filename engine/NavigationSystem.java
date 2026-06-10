@@ -137,8 +137,13 @@ public class NavigationSystem {
 
     // POI Functions
     public void addPOI(PointOfInterest poi) {
-        poiByCategory.computeIfAbsent(poi.getCategory(), k -> new ArrayList<>()).add(poi);
-        rebuildPOITree(poi.getCategory());
+        String cat = poi.getCategory().toUpperCase();
+        minLat = Math.min(minLat, poi.getLatitude()  - BOUNDS_BUFFER);
+        maxLat = Math.max(maxLat, poi.getLatitude()  + BOUNDS_BUFFER);
+        minLon = Math.min(minLon, poi.getLongitude() - BOUNDS_BUFFER);
+        maxLon = Math.max(maxLon, poi.getLongitude() + BOUNDS_BUFFER);
+        poiByCategory.computeIfAbsent(cat, k -> new ArrayList<>()).add(poi);
+        rebuildPOITree(cat);
     }
 
     public List<PointOfInterest> findNearestPOIs(String category, double lat, double lon, int k) {
@@ -157,7 +162,7 @@ public class NavigationSystem {
     }
 
     private void rebuildPOITree(String category) {
-        POIQuadTree tree = new POIQuadTree(minLat - BOUNDS_BUFFER, maxLat + BOUNDS_BUFFER, minLon - BOUNDS_BUFFER, maxLon + BOUNDS_BUFFER);
+        POIQuadTree tree = new POIQuadTree(minLat, maxLat, minLon, maxLon);
         for (PointOfInterest p : poiByCategory.getOrDefault(category, Collections.emptyList())) {
             tree.insert(p);
         }
