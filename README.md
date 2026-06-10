@@ -296,7 +296,7 @@ flowchart LR
     D2 --> D3{Heap\nempty?}:::dec
     D3 -->|Yes| D9([No path]):::bad
     D3 -->|No| D4[Pop u\nmin dist]:::action
-    D4 --> D5{Stale entry?\ne.priority > dist.get(u)}:::dec
+    D4 --> D5{"Stale entry?\ne.priority > dist.get(u)"}:::dec
     D5 -->|Yes| D3
     D5 -->|No| D6{u = dest?}:::dec
     D6 -->|Yes| D8([Return Route]):::term
@@ -317,7 +317,7 @@ flowchart LR
     A2 --> A3{Heap\nempty?}:::dec
     A3 -->|Yes| A9([No path]):::bad
     A3 -->|No| A4[Pop u\nmin f-score]:::action
-    A4 --> A5{Stale entry?\ne.priority > gScore.get(u)+h}:::dec
+    A4 --> A5{"Stale entry?\ne.priority > gScore.get(u)+h"}:::dec
     A5 -->|Yes| A3
     A5 -->|No| A6{u = dest?}:::dec
     A6 -->|Yes| A8([Return Route]):::term
