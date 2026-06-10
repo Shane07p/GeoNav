@@ -53,41 +53,41 @@ STN, OLD, 3.0, 15.0
 THB, IND, 16.0, 45.0
 
 # POIS
-# ID, Name, Category, NearestNodeID, Rating, Latitude, Longitude
+# ID, Name, Category, Rating, Latitude, Longitude
 # Hotels (12)
-H1, Grand Plaza Hotel, HOTEL, CTR, 4.2, 12.9760, 77.6075
-H2, Sunset Inn, HOTEL, GDN, 4.8, 12.9768, 77.5935
-H3, City Lodge, HOTEL, MKT, 3.5, 12.9790, 77.6415
-H4, Tech Towers Hotel, HOTEL, THB, 4.0, 12.9358, 77.6250
-H5, Heritage House, HOTEL, OLD, 4.6, 12.9970, 77.5720
-H6, Station View Hotel, HOTEL, STN, 3.2, 12.9778, 77.5728
-H7, Campus Stay, HOTEL, UNI, 3.8, 12.9315, 77.5845
-H8, Lakeside Resort, HOTEL, LKS, 4.9, 12.9120, 77.6395
-H9, Industrial Inn, HOTEL, IND, 2.8, 12.8462, 77.6610
-H10, Hillview Lodge, HOTEL, HLV, 4.4, 12.9705, 77.7510
-H11, North Gate Hotel, HOTEL, NTH, 3.9, 13.0365, 77.5978
-H12, Sky Airport Hotel, HOTEL, AIR, 4.1, 13.1995, 77.7075
+H1, Grand Plaza Hotel, HOTEL, 4.2, 12.9760, 77.6075
+H2, Sunset Inn, HOTEL, 4.8, 12.9768, 77.5935
+H3, City Lodge, HOTEL, 3.5, 12.9790, 77.6415
+H4, Tech Towers Hotel, HOTEL, 4.0, 12.9358, 77.6250
+H5, Heritage House, HOTEL, 4.6, 12.9970, 77.5720
+H6, Station View Hotel, HOTEL, 3.2, 12.9778, 77.5728
+H7, Campus Stay, HOTEL, 3.8, 12.9315, 77.5845
+H8, Lakeside Resort, HOTEL, 4.9, 12.9120, 77.6395
+H9, Industrial Inn, HOTEL, 2.8, 12.8462, 77.6610
+H10, Hillview Lodge, HOTEL, 4.4, 12.9705, 77.7510
+H11, North Gate Hotel, HOTEL, 3.9, 13.0365, 77.5978
+H12, Sky Airport Hotel, HOTEL, 4.1, 13.1995, 77.7075
 # Restaurants (10)
-R1, Spice Garden, RESTAURANT, CTR, 4.5, 12.9752, 77.6062
-R2, Garden Cafe, RESTAURANT, GDN, 4.0, 12.9770, 77.5932
-R3, Market Bites, RESTAURANT, MKT, 3.8, 12.9780, 77.6400
-R4, Lakeside Grill, RESTAURANT, LKS, 4.3, 12.9110, 77.6382
-R5, Castle Bistro, RESTAURANT, CST, 4.7, 12.9992, 77.5928
-R6, Old Town Kitchen, RESTAURANT, OLD, 4.1, 12.9962, 77.5708
-R7, Tech Canteen, RESTAURANT, THB, 3.3, 12.9348, 77.6238
-R8, Port Fish House, RESTAURANT, PRT, 4.6, 12.8655, 77.7878
-R9, Hilltop Diner, RESTAURANT, HLV, 3.9, 12.9695, 77.7495
-R10, Station Snacks, RESTAURANT, STN, 3.0, 12.9775, 77.5725
+R1, Spice Garden, RESTAURANT, 4.5, 12.9752, 77.6062
+R2, Garden Cafe, RESTAURANT, 4.0, 12.9770, 77.5932
+R3, Market Bites, RESTAURANT, 3.8, 12.9780, 77.6400
+R4, Lakeside Grill, RESTAURANT, 4.3, 12.9110, 77.6382
+R5, Castle Bistro, RESTAURANT, 4.7, 12.9992, 77.5928
+R6, Old Town Kitchen, RESTAURANT, 4.1, 12.9962, 77.5708
+R7, Tech Canteen, RESTAURANT, 3.3, 12.9348, 77.6238
+R8, Port Fish House, RESTAURANT, 4.6, 12.8655, 77.7878
+R9, Hilltop Diner, RESTAURANT, 3.9, 12.9695, 77.7495
+R10, Station Snacks, RESTAURANT, 3.0, 12.9775, 77.5725
 # Malls (6)
-M1, Central Mall, MALL, CTR, 4.0, 12.9758, 77.6072
-M2, Tech Plaza, MALL, THB, 3.5, 12.9355, 77.6248
-M3, Market Square Mall, MALL, MKT, 4.2, 12.9788, 77.6412
-M4, Lakeside Galleria, MALL, LKS, 4.5, 12.9118, 77.6392
-M5, Castle Court, MALL, CST, 3.8, 12.9985, 77.5918
-M6, Hillview Centre, MALL, HLV, 4.1, 12.9700, 77.7505
+M1, Central Mall, MALL, 4.0, 12.9758, 77.6072
+M2, Tech Plaza, MALL, 3.5, 12.9355, 77.6248
+M3, Market Square Mall, MALL, 4.2, 12.9788, 77.6412
+M4, Lakeside Galleria, MALL, 4.5, 12.9118, 77.6392
+M5, Castle Court, MALL, 3.8, 12.9985, 77.5918
+M6, Hillview Centre, MALL, 4.1, 12.9700, 77.7505
 # Theatres (5)
-T1, Star Cinema, THEATRE, CTR, 4.3, 12.9755, 77.6065
-T2, Castle Playhouse, THEATRE, CST, 4.7, 12.9990, 77.5925
-T3, Garden Amphitheatre, THEATRE, GDN, 4.0, 12.9765, 77.5932
-T4, Lakeside IMAX, THEATRE, LKS, 4.5, 12.9115, 77.6388
-T5, Market Multiplex, THEATRE, MKT, 3.6, 12.9782, 77.6405
+T1, Star Cinema, THEATRE, 4.3, 12.9755, 77.6065
+T2, Castle Playhouse, THEATRE, 4.7, 12.9990, 77.5925
+T3, Garden Amphitheatre, THEATRE, 4.0, 12.9765, 77.5932
+T4, Lakeside IMAX, THEATRE, 4.5, 12.9115, 77.6388
+T5, Market Multiplex, THEATRE, 3.6, 12.9782, 77.6405

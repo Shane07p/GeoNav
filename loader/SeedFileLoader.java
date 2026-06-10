@@ -19,7 +19,7 @@ import java.util.Set;
  *   SourceID, DestID, Distance(km), SpeedLimit(km/h)
  *
  *   # POIS
- *   ID, Name, Category, NearestNodeID, Rating, Latitude, Longitude
+ *   ID, Name, Category, Rating, Latitude, Longitude
  *
  * Lines starting with '#' and blank lines are ignored.
  * Sections must appear in order: NODES -> EDGES -> POIS (POIS is optional).
@@ -112,28 +112,23 @@ public class SeedFileLoader {
 
     private static boolean parsePOI(String[] f, int line, Set<String> nodeIds, Set<String> poiIds,
                                     NavigationSystem system) throws SeedFileException {
-        if (f.length != 7)
+        if (f.length != 6)
             throw new SeedFileException("Line " + line
-                    + ": POI needs 7 fields (ID, Name, Category, NearestNodeID, Rating, Lat, Lon), got " + f.length);
-        String id          = f[0].toUpperCase();
-        String nearestNode = f[3].toUpperCase();
-        double rating = parseDouble(f[4], line, "rating");
-        double lat    = parseDouble(f[5], line, "latitude");
-        double lon    = parseDouble(f[6], line, "longitude");
+                    + ": POI needs 6 fields (ID, Name, Category, Rating, Lat, Lon), got " + f.length);
+        String id     = f[0].toUpperCase();
+        double rating = parseDouble(f[3], line, "rating");
+        double lat    = parseDouble(f[4], line, "latitude");
+        double lon    = parseDouble(f[5], line, "longitude");
 
         if (poiIds.contains(id)) {
             warn(line, "duplicate POI ID '" + id + "', skipping");
-            return false;
-        }
-        if (!nodeIds.contains(nearestNode)) {
-            warn(line, "POI nearest node '" + nearestNode + "' not found in graph, skipping");
             return false;
         }
         if (rating < 1.0 || rating > 5.0)
             warn(line, "rating " + rating + " is outside [1.0, 5.0]");
 
         poiIds.add(id);
-        system.addPOI(new PointOfInterest(id, f[1], f[2].toUpperCase(), rating, lat, lon, nearestNode));
+        system.addPOI(new PointOfInterest(id, f[1], f[2].toUpperCase(), rating, lat, lon));
         return true;
     }
 

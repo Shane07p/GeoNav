@@ -428,8 +428,14 @@ public class Main {
         System.out.println();
         System.out.println(BOLD + "  NAVIGATING TO: " + RESET + CYAN + chosen.getName() + RESET);
 
+        Node chosenNode = nav.findNearestNode(chosen.getLatitude(), chosen.getLongitude());
+        if (chosenNode == null) {
+            System.out.println("  " + RED + "No graph node found near " + chosen.getName() + "." + RESET + "\n");
+            return;
+        }
+
         long t0 = System.nanoTime();
-        Route route = nav.findRoute(nodeId, chosen.getNearestNodeId());
+        Route route = nav.findRoute(nodeId, chosenNode.getId());
         long elapsed = System.nanoTime() - t0;
 
         if (route == null) {
@@ -458,17 +464,16 @@ public class Main {
         double lon = readDouble(sc, "Longitude      : ");
         if (Double.isNaN(lon)) return;
 
-        System.out.print("  " + YELLOW + "Nearest Node ID: " + RESET);
-        String nearNode = sc.nextLine().trim().toUpperCase();
-
-        if (nav.getGraph().getNode(nearNode) == null) {
-            System.out.println("\n  " + RED + "Unknown node '" + nearNode + "'." + RESET + "\n");
+        Node nearest = nav.findNearestNode(lat, lon);
+        if (nearest == null) {
+            System.out.println("\n  " + RED + "No graph nodes exist yet. Add locations first." + RESET + "\n");
             return;
         }
 
-        nav.addPOI(new PointOfInterest(id, name, cat, rating, lat, lon, nearNode));
+        nav.addPOI(new PointOfInterest(id, name, cat, rating, lat, lon));
         System.out.println("\n  " + GREEN + "Place added: " + BOLD + name + RESET + GREEN
-                + " [" + cat + "] " + rating + " stars" + RESET + "\n");
+                + " [" + cat + "] " + rating + " stars"
+                + DIM + "  (nearest node: " + nearest.getName() + ")" + RESET + "\n");
     }
 
     // Approximate distance in km (haversine formula)

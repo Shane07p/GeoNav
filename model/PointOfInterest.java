@@ -14,16 +14,14 @@ public class PointOfInterest {
     private final double rating;       // 1.0 - 5.0
     private final double latitude;
     private final double longitude;
-    private final String nearestNodeId; // which map node this POI is closest to (for routing)
 
-    public PointOfInterest(String id, String name, String category, double rating, double latitude, double longitude, String nearestNodeId) {
+    public PointOfInterest(String id, String name, String category, double rating, double latitude, double longitude) {
         this.id = id;
         this.name = name;
         this.category = category.toUpperCase();
         this.rating = rating;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.nearestNodeId = nearestNodeId;
     }
 
     // Getters
@@ -33,7 +31,6 @@ public class PointOfInterest {
     public double getRating() { return rating; }
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
-    public String getNearestNodeId() { return nearestNodeId; }
 
     public String getStars() {
         int full = (int) rating;

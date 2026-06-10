@@ -160,8 +160,8 @@ CTR, Central Plaza, 12.9756, 77.6068
 CTR, GDN, 1.5, 25.0
 
 # POIS
-# ID, Name, Category, NearestNodeID, Rating, Latitude, Longitude
-H1, Grand Plaza Hotel, HOTEL, CTR, 4.2, 12.9760, 77.6075
+# ID, Name, Category, Rating, Latitude, Longitude
+H1, Grand Plaza Hotel, HOTEL, 4.2, 12.9760, 77.6075
 ```
 
 ### Validation
@@ -175,7 +175,6 @@ H1, Grand Plaza Hotel, HOTEL, CTR, 4.2, 12.9760, 77.6075
 | Lat/lon out of range | **Warning** — entry still loaded |
 | Distance or speed ≤ 0 | **Warning** — edge skipped |
 | Rating outside [1.0, 5.0] | **Warning** — POI still loaded |
-| POI nearest node not found | **Warning** — POI skipped |
 | Duplicate POI ID | **Warning** — second entry skipped |
 
 On a hard error the program offers to fall back to `seeds/default_city.txt`.
@@ -297,10 +296,10 @@ flowchart LR
     D2 --> D3{Heap\nempty?}:::dec
     D3 -->|Yes| D9([No path]):::bad
     D3 -->|No| D4[Pop u\nmin dist]:::action
-    D4 --> D5{u = dest?}:::dec
-    D5 -->|Yes| D8([Return Route]):::term
-    D5 -->|No| D6{Visited?}:::dec
-    D6 -->|Yes| D3
+    D4 --> D5{Stale entry?\ne.priority > dist[u]}:::dec
+    D5 -->|Yes| D3
+    D5 -->|No| D6{u = dest?}:::dec
+    D6 -->|Yes| D8([Return Route]):::term
     D6 -->|No| D7["Relax neighbors\nnewDist = dist_u + km\nif better → update + push"]:::action
     D7 --> D3
 
@@ -318,10 +317,10 @@ flowchart LR
     A2 --> A3{Heap\nempty?}:::dec
     A3 -->|Yes| A9([No path]):::bad
     A3 -->|No| A4[Pop u\nmin f-score]:::action
-    A4 --> A5{u = dest?}:::dec
-    A5 -->|Yes| A8([Return Route]):::term
-    A5 -->|No| A6{Visited?}:::dec
-    A6 -->|Yes| A3
+    A4 --> A5{Stale entry?\ne.priority > gScore[u]+h}:::dec
+    A5 -->|Yes| A3
+    A5 -->|No| A6{u = dest?}:::dec
+    A6 -->|Yes| A8([Return Route]):::term
     A6 -->|No| A7["g_new = g_u + km/speed\nh = haversine(v,dest) / 60\nf = g_new + h\nif better → update + push"]:::action
     A7 --> A3
 
