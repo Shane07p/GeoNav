@@ -3,3 +3,7 @@
 
 # Compiled output directory
 out/
+
+# Local Claude Code rules (personal, not shared)
+.claude/
+CLAUDE.md

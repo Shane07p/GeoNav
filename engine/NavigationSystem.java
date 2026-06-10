@@ -32,9 +32,9 @@ public class NavigationSystem {
     // Bounding box for QuadTree rebuilds
     private double minLat, maxLat, minLon, maxLon;
 
-    // Routing strategies
     private static final RoutingStrategy DIJKSTRA = new DijkstraStrategy();
-    private static final RoutingStrategy A_STAR = new AStarStrategy();
+    private static final RoutingStrategy A_STAR    = new AStarStrategy();
+    private static final double BOUNDS_BUFFER      = 0.01;
 
     // POI storage: grouped by category
     private final Map<String, List<PointOfInterest>> poiByCategory = new LinkedHashMap<>();
@@ -61,12 +61,12 @@ public class NavigationSystem {
     }
 
     // Single-pair routing
-    public Route findRoute(String sourceId, String destinationId) {
-        Node source = graph.getNode(sourceId);
-        Node destination = graph.getNode(destinationId);
-        if (source == null || destination == null)
+    public Route findRoute(String srcId, String destId) {
+        Node src = graph.getNode(srcId);
+        Node dest = graph.getNode(destId);
+        if (src == null || dest == null)
             return null;
-        return strategy.findRoute(graph, source, destination);
+        return strategy.findRoute(graph, src, dest);
     }
 
     /**
@@ -120,16 +120,16 @@ public class NavigationSystem {
         }
     }
 
-    public ComparisonResult compareRoutes(String sourceId, String destinationId) {
-        Node source = graph.getNode(sourceId);
-        Node destination = graph.getNode(destinationId);
-        if (source == null || destination == null)
+    public ComparisonResult compareRoutes(String srcId, String destId) {
+        Node src = graph.getNode(srcId);
+        Node dest = graph.getNode(destId);
+        if (src == null || dest == null)
             return null;
 
         long t0 = System.nanoTime();
-        Route dijkstra = DIJKSTRA.findRoute(graph, source, destination);
+        Route dijkstra = DIJKSTRA.findRoute(graph, src, dest);
         long t1 = System.nanoTime();
-        Route aStar = A_STAR.findRoute(graph, source, destination);
+        Route aStar = A_STAR.findRoute(graph, src, dest);
         long t2 = System.nanoTime();
 
         return new ComparisonResult(dijkstra, aStar, t1 - t0, t2 - t1);
@@ -157,7 +157,7 @@ public class NavigationSystem {
     }
 
     private void rebuildPOITree(String category) {
-        POIQuadTree tree = new POIQuadTree(minLat - 0.01, maxLat + 0.01, minLon - 0.01, maxLon + 0.01);
+        POIQuadTree tree = new POIQuadTree(minLat - BOUNDS_BUFFER, maxLat + BOUNDS_BUFFER, minLon - BOUNDS_BUFFER, maxLon + BOUNDS_BUFFER);
         for (PointOfInterest p : poiByCategory.getOrDefault(category, Collections.emptyList())) {
             tree.insert(p);
         }
@@ -167,10 +167,10 @@ public class NavigationSystem {
     // Dynamic Map Editing
     public void addLocation(Node node) {
         graph.addNode(node);
-        minLat = Math.min(minLat, node.getLatitude() - 0.01);
-        maxLat = Math.max(maxLat, node.getLatitude() + 0.01);
-        minLon = Math.min(minLon, node.getLongitude() - 0.01);
-        maxLon = Math.max(maxLon, node.getLongitude() + 0.01);
+        minLat = Math.min(minLat, node.getLatitude() - BOUNDS_BUFFER);
+        maxLat = Math.max(maxLat, node.getLatitude() + BOUNDS_BUFFER);
+        minLon = Math.min(minLon, node.getLongitude() - BOUNDS_BUFFER);
+        maxLon = Math.max(maxLon, node.getLongitude() + BOUNDS_BUFFER);
         rebuildQuadTree();
     }
 

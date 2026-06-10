@@ -20,26 +20,11 @@ public class Edge {
     }
 
     // Getters
-
-    public Node getSource() {
-        return source;
-    }
-
-    public Node getDestination() {
-        return destination;
-    }
-
-    public double getDistance() {
-        return distance;
-    }
-
-    public double getSpeedLimit() {
-        return speedLimit;
-    }
-
-    public double getTravelTime() {
-        return distance / speedLimit;
-    }
+    public Node getSource()        { return source; }
+    public Node getDestination()   { return destination; }
+    public double getDistance()    { return distance; }
+    public double getSpeedLimit()  { return speedLimit; }
+    public double getTravelTime()  { return distance / speedLimit; }
 
     @Override
     public String toString() {

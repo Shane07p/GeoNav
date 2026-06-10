@@ -25,7 +25,6 @@ public class QuadTree {
     private final List<Node> points;
     private boolean divided;
 
-    // 4 children of the node
     private QuadTree northwest;
     private QuadTree northeast;
     private QuadTree southwest;
@@ -131,7 +130,6 @@ public class QuadTree {
         divided = true;
     }
 
-    // from any point what is the minimum distance of to the boundary box
     private double distToQuad(double lat, double lon) {
         double closestLat = Math.max(minLat, Math.min(lat, maxLat));
         double closestLon = Math.max(minLon, Math.min(lon, maxLon));
