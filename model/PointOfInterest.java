@@ -32,14 +32,6 @@ public class PointOfInterest {
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
 
-    public String getStars() {
-        int full = (int) rating;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < full; i++) sb.append("*");
-        for (int i = full; i < 5; i++) sb.append(" ");
-        return sb.toString();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

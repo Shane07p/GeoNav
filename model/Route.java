@@ -24,27 +24,15 @@ public class Route {
     public double getTotalDistance()    { return totalDistance; }
     public double getTotalTime()        { return totalTime; }
 
-    // Display
-
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("╔══════════════════════════════════════════════╗\n");
-        sb.append("║            ROUTE FOUND                      ║\n");
-        sb.append("╠══════════════════════════════════════════════╣\n");
-
-        sb.append("║  Path: ");
+        StringBuilder sb = new StringBuilder("Path: ");
         for (int i = 0; i < nodes.size(); i++) {
-            if (i > 0)
-                sb.append(" → ");
+            if (i > 0) sb.append(" -> ");
             sb.append(nodes.get(i).getName());
         }
-        sb.append("\n");
-
-        sb.append(String.format("║  Total Distance : %.2f km\n", totalDistance));
-        sb.append(String.format("║  Estimated Time : %.1f minutes\n", totalTime * 60));
-        sb.append("╚══════════════════════════════════════════════╝");
-
+        sb.append(String.format("%nDistance: %.2f km", totalDistance));
+        sb.append(String.format("%nTime: %.1f minutes", totalTime * 60));
         return sb.toString();
     }
 }
