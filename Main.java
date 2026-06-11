@@ -54,7 +54,7 @@ public class Main {
             return;
         }
 
-        System.out.println("\nGeoNav — Geospatial Routing & Navigation Engine\n");
+        System.out.println("\nGeoNav - Geospatial Routing & Navigation Engine\n");
 
         boolean running = true;
         while (running) {
@@ -64,48 +64,20 @@ public class Main {
             System.out.println();
 
             switch (choice) {
-                case "1":
-                    showAllLocations(navSystem);
-                    break;
-                case "2":
-                    findRoute(navSystem, sc);
-                    break;
-                case "3":
-                    switchStrategy(navSystem);
-                    break;
-                case "4":
-                    findNearest(navSystem, sc);
-                    break;
-                case "5":
-                    addLocation(navSystem, sc);
-                    break;
-                case "6":
-                    addRoad(navSystem, sc);
-                    break;
-                case "7":
-                    showMapStats(navSystem);
-                    break;
-                case "8":
-                    deleteLocation(navSystem, sc);
-                    break;
-                case "9":
-                    multiStopRoute(navSystem, sc);
-                    break;
-                case "10":
-                    compareRoutes(navSystem, sc);
-                    break;
-                case "11":
-                    findNearbyPlaces(navSystem, sc);
-                    break;
-                case "12":
-                    addPlace(navSystem, sc);
-                    break;
-                case "0":
-                    running = false;
-                    System.out.println("Goodbye!\n");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Enter 0-12.\n");
+                case "1":  showAllLocations(navSystem);  break;
+                case "2":  findRoute(navSystem, sc);      break;
+                case "3":  switchStrategy(navSystem);     break;
+                case "4":  findNearest(navSystem, sc);    break;
+                case "5":  addLocation(navSystem, sc);    break;
+                case "6":  addRoad(navSystem, sc);        break;
+                case "7":  showMapStats(navSystem);       break;
+                case "8":  deleteLocation(navSystem, sc); break;
+                case "9":  multiStopRoute(navSystem, sc); break;
+                case "10": compareRoutes(navSystem, sc);  break;
+                case "11": findNearbyPlaces(navSystem, sc); break;
+                case "12": addPlace(navSystem, sc);       break;
+                case "0":  running = false; System.out.println("Goodbye!\n"); break;
+                default:   System.out.println("Invalid choice. Enter 0-12.\n");
             }
         }
 
@@ -164,7 +136,7 @@ public class Main {
     }
 
     private static void switchStrategy(NavigationSystem nav) {
-        if (nav.getStrategy() instanceof DijkstraStrategy) {
+        if (nav.getStrategy() == DIJKSTRA) {
             nav.setStrategy(A_STAR);
         } else {
             nav.setStrategy(DIJKSTRA);
@@ -377,14 +349,7 @@ public class Main {
         }
         System.out.println("------------------------------------------");
 
-        System.out.print("Navigate to (1-" + nearest.size() + ", or 0 to skip): ");
-        int navChoice;
-        try {
-            navChoice = Integer.parseInt(sc.nextLine().trim());
-        } catch (NumberFormatException e) {
-            navChoice = 0;
-        }
-
+        int navChoice = readInt(sc, "Navigate to (1-" + nearest.size() + ", or 0 to skip): ");
         if (navChoice < 1 || navChoice > nearest.size()) {
             System.out.println("Returning to menu.\n");
             return;
@@ -440,7 +405,7 @@ public class Main {
                 + "  (nearest node: " + nearest.getName() + ")\n");
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // Helpers
 
     private static void printRoute(Route route, long elapsedNs) {
         StringBuilder path = new StringBuilder();
@@ -493,7 +458,7 @@ public class Main {
     }
 
     private static void printMenu(NavigationSystem nav) {
-        String strat = (nav.getStrategy() instanceof DijkstraStrategy) ? "Dijkstra" : "A*";
+        String strat = (nav.getStrategy() == DIJKSTRA) ? "Dijkstra" : "A*";
         System.out.println("------------------------------------------");
         System.out.println("  1  Show All Locations");
         System.out.println("  2  Find Route");
