@@ -19,7 +19,7 @@ import java.util.Set;
 public class Main {
 
     private static final RoutingStrategy DIJKSTRA = new DijkstraStrategy();
-    private static final RoutingStrategy A_STAR   = new AStarStrategy();
+    private static final RoutingStrategy A_STAR = new AStarStrategy();
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
@@ -32,19 +32,26 @@ public class Main {
 
         System.out.print("\nEnter seed file path (press Enter for default city): ");
         String path = sc.nextLine().trim();
-        if (path.isEmpty()) path = "seeds/default_city.txt";
+        if (path.isEmpty())
+            path = "seeds/default_city.txt";
 
+        boolean loaded = true;
         try {
             SeedFileLoader.load(navSystem, path);
         } catch (SeedFileLoader.SeedFileException e) {
             System.out.println("[ERROR] " + e.getMessage());
-            if (!loadFallback(navSystem, sc)) { sc.close(); return; }
+            loaded = false;
         } catch (FileNotFoundException e) {
             System.out.println("[ERROR] File not found: " + path);
-            if (!loadFallback(navSystem, sc)) { sc.close(); return; }
+            loaded = false;
         } catch (IOException e) {
             System.out.println("[ERROR] Could not read file: " + e.getMessage());
-            if (!loadFallback(navSystem, sc)) { sc.close(); return; }
+            loaded = false;
+        }
+
+        if (!loaded && !loadFallback(navSystem, sc)) {
+            sc.close();
+            return;
         }
 
         System.out.println("\nGeoNav — Geospatial Routing & Navigation Engine\n");
@@ -57,18 +64,42 @@ public class Main {
             System.out.println();
 
             switch (choice) {
-                case "1":  showAllLocations(navSystem);      break;
-                case "2":  findRoute(navSystem, sc);         break;
-                case "3":  switchStrategy(navSystem);        break;
-                case "4":  findNearest(navSystem, sc);       break;
-                case "5":  addLocation(navSystem, sc);       break;
-                case "6":  addRoad(navSystem, sc);           break;
-                case "7":  showMapStats(navSystem);          break;
-                case "8":  deleteLocation(navSystem, sc);    break;
-                case "9":  multiStopRoute(navSystem, sc);    break;
-                case "10": compareRoutes(navSystem, sc);     break;
-                case "11": findNearbyPlaces(navSystem, sc);  break;
-                case "12": addPlace(navSystem, sc);          break;
+                case "1":
+                    showAllLocations(navSystem);
+                    break;
+                case "2":
+                    findRoute(navSystem, sc);
+                    break;
+                case "3":
+                    switchStrategy(navSystem);
+                    break;
+                case "4":
+                    findNearest(navSystem, sc);
+                    break;
+                case "5":
+                    addLocation(navSystem, sc);
+                    break;
+                case "6":
+                    addRoad(navSystem, sc);
+                    break;
+                case "7":
+                    showMapStats(navSystem);
+                    break;
+                case "8":
+                    deleteLocation(navSystem, sc);
+                    break;
+                case "9":
+                    multiStopRoute(navSystem, sc);
+                    break;
+                case "10":
+                    compareRoutes(navSystem, sc);
+                    break;
+                case "11":
+                    findNearbyPlaces(navSystem, sc);
+                    break;
+                case "12":
+                    addPlace(navSystem, sc);
+                    break;
                 case "0":
                     running = false;
                     System.out.println("Goodbye!\n");
@@ -83,7 +114,8 @@ public class Main {
 
     private static boolean loadFallback(NavigationSystem navSystem, Scanner sc) {
         System.out.print("Load default city instead? (y/n): ");
-        if (!sc.nextLine().trim().equalsIgnoreCase("y")) return false;
+        if (!sc.nextLine().trim().equalsIgnoreCase("y"))
+            return false;
         try {
             SeedFileLoader.load(navSystem, "seeds/default_city.txt");
             return true;
@@ -93,7 +125,7 @@ public class Main {
         }
     }
 
-    // ── Menu Actions ──────────────────────────────────────────────────────────
+    // Menu Actions
 
     private static void showAllLocations(NavigationSystem nav) {
         System.out.println("LOCATIONS");
@@ -143,9 +175,11 @@ public class Main {
     private static void findNearest(NavigationSystem nav, Scanner sc) {
         System.out.println("FIND NEAREST LOCATION");
         double lat = readDouble(sc, "Latitude  : ");
-        if (Double.isNaN(lat)) return;
+        if (Double.isNaN(lat))
+            return;
         double lon = readDouble(sc, "Longitude : ");
-        if (Double.isNaN(lon)) return;
+        if (Double.isNaN(lon))
+            return;
 
         Node nearest = nav.findNearestNode(lat, lon);
         if (nearest != null) {
@@ -167,9 +201,11 @@ public class Main {
         System.out.print("Location Name : ");
         String name = sc.nextLine().trim();
         double lat = readDouble(sc, "Latitude      : ");
-        if (Double.isNaN(lat)) return;
+        if (Double.isNaN(lat))
+            return;
         double lon = readDouble(sc, "Longitude     : ");
-        if (Double.isNaN(lon)) return;
+        if (Double.isNaN(lon))
+            return;
 
         nav.addLocation(new Node(id, name, lat, lon));
         System.out.println("Added: " + name + " (" + id + ")\n");
@@ -205,10 +241,12 @@ public class Main {
             return;
         }
 
-        double dist  = readDouble(sc, "Distance (km)     : ");
-        if (Double.isNaN(dist)) return;
+        double dist = readDouble(sc, "Distance (km)     : ");
+        if (Double.isNaN(dist))
+            return;
         double speed = readDouble(sc, "Speed limit (km/h): ");
-        if (Double.isNaN(speed)) return;
+        if (Double.isNaN(speed))
+            return;
 
         nav.addRoad(srcId, destId, dist, speed);
         System.out.println("Road added: " + srcId + " <-> " + destId
@@ -237,7 +275,9 @@ public class Main {
         }
 
         List<String> stops = new ArrayList<>();
-        for (String p : parts) if (!p.isEmpty()) stops.add(p);
+        for (String p : parts)
+            if (!p.isEmpty())
+                stops.add(p);
 
         long t0 = System.nanoTime();
         Route route = nav.findMultiStopRoute(stops);
@@ -302,7 +342,8 @@ public class Main {
         }
 
         int catChoice = readInt(sc, "Choose category (1-" + catArray.length + "): ");
-        if (catChoice == -1) return;
+        if (catChoice == -1)
+            return;
         if (catChoice < 1 || catChoice > catArray.length) {
             System.out.println("Invalid choice.\n");
             return;
@@ -379,11 +420,14 @@ public class Main {
         String cat = sc.nextLine().trim().toUpperCase();
 
         double rating = readDouble(sc, "Rating (1-5)   : ");
-        if (Double.isNaN(rating)) return;
-        double lat    = readDouble(sc, "Latitude       : ");
-        if (Double.isNaN(lat)) return;
-        double lon    = readDouble(sc, "Longitude      : ");
-        if (Double.isNaN(lon)) return;
+        if (Double.isNaN(rating))
+            return;
+        double lat = readDouble(sc, "Latitude       : ");
+        if (Double.isNaN(lat))
+            return;
+        double lon = readDouble(sc, "Longitude      : ");
+        if (Double.isNaN(lon))
+            return;
 
         Node nearest = nav.findNearestNode(lat, lon);
         if (nearest == null) {
@@ -401,7 +445,8 @@ public class Main {
     private static void printRoute(Route route, long elapsedNs) {
         StringBuilder path = new StringBuilder();
         for (int i = 0; i < route.getNodes().size(); i++) {
-            if (i > 0) path.append(" -> ");
+            if (i > 0)
+                path.append(" -> ");
             path.append(route.getNodes().get(i).getName());
         }
         System.out.println("------------------------------------------");
@@ -417,7 +462,8 @@ public class Main {
         if (nodes.size() <= 3) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < nodes.size(); i++) {
-                if (i > 0) sb.append(" -> ");
+                if (i > 0)
+                    sb.append(" -> ");
                 sb.append(nodes.get(i).getId());
             }
             return sb.toString();
@@ -471,7 +517,7 @@ public class Main {
         double dLon = Math.toRadians(lon2 - lon1);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 }
