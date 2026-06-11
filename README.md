@@ -183,31 +183,46 @@ On a hard error the program offers to fall back to `seeds/default_city.txt`.
 
 ## Performance Benchmarks
 
-> Measured using `System.nanoTime()` with 200 JIT warm-up runs (discarded) followed by 1,000 measured iterations. Times in microseconds (µs).
+> The interactive app ships with a 14-node demo city. To validate the asymptotic complexity claims at scale, `BenchmarkRunner` generates a synthetic **100,000-node / ~400,000-edge** connected city (avg degree ~8) plus 10,000 POIs, and measures with `System.nanoTime()` after JIT warm-up. Numbers below are from one such run.
 
-### Algorithm Execution Time (CTR → PRT, n = 1,000 runs)
+### Routing Algorithm Execution (n0 → n99999, 20 runs)
 
-| Algorithm | Avg | Min | Max | P95 |
-|-----------|:---:|:---:|:---:|:---:|
-| Dijkstra | 6 µs | 3 µs | 108 µs | 10 µs |
-| A\* Search | 6 µs | 4 µs | 114 µs | 10 µs |
+| Algorithm | Avg |
+|-----------|:---:|
+| Dijkstra | 145.8 ms |
+| A\* Search | 46.0 ms |
 
-Both algorithms complete in under **10 µs** per query. At 14 nodes both are equally fast — the meaningful difference between them is **path quality**.
+On a 100k-node graph A\* runs ~**3× faster** than Dijkstra — its admissible Haversine heuristic prunes the search frontier, so it expands far fewer nodes to reach the goal.
 
-### Path Divergence — All 91 Source–Destination Pairs
+### Path Divergence — 2,000 Source–Destination Pairs
 
-Dijkstra optimises for **shortest distance** (km); A\* optimises for **fastest time** (hours). On roads with varying speed limits (12–100 km/h) they produce different routes.
+Dijkstra optimises for **shortest distance** (km); A\* optimises for **fastest time** (hours). On roads with varying speed limits they produce different routes.
 
 | Metric | Value |
 |--------|-------|
-| Unique pairs analysed | 91 |
-| Pairs where paths differ | **38 / 91 (42%)** |
-| Average time saved by A\* | **6.0 min / trip** |
-| Maximum time saved by A\* | **27.9 min** (CTR → PRT) |
-| Avg hops — Dijkstra | 3.7 nodes |
-| Avg hops — A\* | 4.1 nodes |
+| Pairs analysed | 2,000 |
+| Pairs where paths differ | **56.9%** |
+| Average time saved by A\* | **9.28 min / trip** |
+| Maximum time saved by A\* | **67.38 min** |
 
-> A\* takes *more hops* but *less time* — it routes via highways even when that means a longer distance.
+> A\* trades a longer distance for less time — it routes via faster roads even when that means more kilometres.
+
+### QuadTree vs Linear Scan (2,000 random probes)
+
+| Method | Avg per probe | Complexity |
+|--------|:-------------:|:----------:|
+| Linear scan | 794,803 ns | O(N) |
+| QuadTree | 66,557 ns | O(log N) |
+
+At N = 100,000 nodes the QuadTree is **11.9× faster** than a linear scan. This is the payoff that's invisible at 14 nodes (where tree-traversal overhead exceeds scanning 14 items) but dominates at city scale.
+
+### POI K-Nearest Search (k = 3, 66,668 queries)
+
+| Metric | Value |
+|--------|-------|
+| Avg latency | 12.2 µs / query |
+
+The per-category spatial index stays fast even across 10,000 indexed POIs.
 
 ### Multi-Stop Route Scaling
 
@@ -215,28 +230,12 @@ Each additional stop adds one routing leg, confirming the theoretical **O(k · (
 
 | Stops | Avg Time | Ratio vs 2-stop |
 |:-----:|:--------:|:---------------:|
-| 2 | 6 µs | 1.00× (baseline) |
-| 3 | 7 µs | 1.14× |
-| 4 | 9 µs | 1.49× |
-| 5 | 8 µs | 1.29× |
+| 2 | 146.4 ms | 1.00× (baseline) |
+| 3 | 258.3 ms | 1.76× |
+| 4 | 422.4 ms | 2.88× |
+| 5 | 580.6 ms | 3.97× |
 
-### POI K-Nearest Search Latency
-
-| Category | k = 1 | k = 3 | k = 5 |
-|----------|:-----:|:-----:|:-----:|
-| HOTEL | 1 µs | 1 µs | 1 µs |
-| RESTAURANT | 1 µs | 1 µs | 1 µs |
-| MALL | 1 µs | 1 µs | 1 µs |
-| THEATRE | 1 µs | 1 µs | 1 µs |
-
-### QuadTree vs Linear Scan (5,000 random probes)
-
-| Method | Avg per probe | Complexity |
-|--------|:-------------:|:----------:|
-| Linear scan | 264 ns | O(N) |
-| QuadTree | 422 ns | O(log N) |
-
-At N = 14 nodes, the QuadTree's traversal overhead exceeds the cost of scanning 14 items directly — the crossover point is typically 50–100+ nodes. The structure is designed for city-scale datasets where O(log N) compounds significantly over O(N).
+Time grows roughly linearly with the number of stops, as expected.
 
 ---
 
@@ -397,7 +396,7 @@ Since `h(n) ≤ h*(n)` (true optimal cost), A\* is guaranteed to find the optima
 | **Heuristic** | None (h = 0) | Haversine / max speed |
 | **Nodes explored** | All reachable within optimal distance | Fewer — heuristic prunes unpromising directions |
 
-In our city map, roads have varying speed limits (12–100 km/h). Dijkstra may prefer a short alley (low distance, low speed), while A\* prefers a longer highway (high distance, high speed) because it minimizes *time*. This causes the **42% path divergence** measured in benchmarks above.
+In our city map, roads have varying speed limits (12–100 km/h). Dijkstra may prefer a short alley (low distance, low speed), while A\* prefers a longer highway (high distance, high speed) because it minimizes *time*. This causes the **56.9% path divergence** measured in benchmarks above.
 
 ---
 
