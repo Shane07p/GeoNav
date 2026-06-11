@@ -398,6 +398,15 @@ Since `h(n) ≤ h*(n)` (true optimal cost), A\* is guaranteed to find the optima
 
 In our city map, roads have varying speed limits (12–100 km/h). Dijkstra may prefer a short alley (low distance, low speed), while A\* prefers a longer highway (high distance, high speed) because it minimizes *time*. This causes the **56.9% path divergence** measured in benchmarks above.
 
+### Why Divergence Grows With Graph Size
+
+Divergence climbed from **42%** (14-node demo) to **57%** (100K-node benchmark). For two paths to be *identical*, every edge along the route must be optimal for distance **and** time at once — so the chance they coincide falls roughly as `pᴸ`, where `L` is the number of hops. Larger graphs mean longer paths (bigger `L`), so more pairs diverge.
+
+The growth is a **saturating curve**, not linear — which is why a ~7,000× jump in nodes only moved divergence by 15 points. It is bounded, and **does not reach 100%**, for two reasons:
+
+1. **The distance↔speed correlation sets the ceiling.** Our synthetic benchmark uses speeds *independent* of distance (the worst case), so divergence approaches 100% only in the infinite limit. Real road networks are correlated (highways are both longer and faster), which makes the two paths agree more often and caps divergence well below 100%.
+2. **Short pairs always agree.** Single-hop pairs have only one path, so distance-optimal = time-optimal trivially — there is always a slice of pairs too short to diverge.
+
 ---
 
 ## POI System — K-Nearest Search
