@@ -500,3 +500,11 @@ The default seed file (`seeds/default_city.txt`) loads **14 locations**, **22 bi
 | Restaurants | 10 | 3.0 – 4.7 |
 | Malls | 6 | 3.5 – 4.5 |
 | Theatres | 5 | 3.6 – 4.7 |
+
+---
+
+## License & Copyright
+
+© 2026 Shane Christian. All rights reserved.
+
+This project and its source code are the intellectual property of the author. No part may be reproduced, distributed, or used without the author's permission.
