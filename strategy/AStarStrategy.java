@@ -23,9 +23,6 @@ import java.util.PriorityQueue;
 
 public class AStarStrategy implements RoutingStrategy {
 
-    // Assumed maximum speed for heuristic (km/h)
-    private static final double MAX_SPEED_KMH = 60.0;
-
     @Override
     public String getStrategyName() {
         return "A* Search (Fastest Time)";
@@ -38,19 +35,25 @@ public class AStarStrategy implements RoutingStrategy {
         Map<String, Edge>   usedEdge = new HashMap<>();
         PriorityQueue<DijkstraStrategy.NodeEntry> pq = new PriorityQueue<>();
 
+        // The heuristic divides by the fastest road speed so it never
+        // overestimates. Deriving it from the actual graph (rather than a
+        // hardcoded constant) keeps it admissible for any seed — a hardcoded
+        // cap below a real road speed would break optimality.
+        double maxSpeed = maxEdgeSpeed(graph);
+
         for (Node node : graph.getAllNodes()) {
             gScore.put(node.getId(), Double.MAX_VALUE);
         }
 
         gScore.put(src.getId(), 0.0);
-        pq.add(new DijkstraStrategy.NodeEntry(src.getId(), heuristic(src, dest)));
+        pq.add(new DijkstraStrategy.NodeEntry(src.getId(), heuristic(src, dest, maxSpeed)));
 
         while (!pq.isEmpty()) {
             DijkstraStrategy.NodeEntry e = pq.poll();
             String u = e.nodeId;
 
             // stale entry: a shorter path to this node was already processed
-            if (e.priority > gScore.get(u) + heuristic(graph.getNode(u), dest))
+            if (e.priority > gScore.get(u) + heuristic(graph.getNode(u), dest, maxSpeed))
                 continue;
 
             if (u.equals(dest.getId()))
@@ -63,7 +66,7 @@ public class AStarStrategy implements RoutingStrategy {
                     prev.put(v, u);
                     usedEdge.put(v, edge);
                     gScore.put(v, ng);
-                    pq.add(new DijkstraStrategy.NodeEntry(v, ng + heuristic(edge.getDestination(), dest)));
+                    pq.add(new DijkstraStrategy.NodeEntry(v, ng + heuristic(edge.getDestination(), dest, maxSpeed)));
                 }
             }
         }
@@ -71,10 +74,27 @@ public class AStarStrategy implements RoutingStrategy {
         return reconstructRoute(graph, src, dest, gScore, prev, usedEdge);
     }
 
-    private double heuristic(Node a, Node b) {
+    private double heuristic(Node a, Node b, double maxSpeed) {
         double d = haversineDistance(a.getLatitude(), a.getLongitude(),
                 b.getLatitude(), b.getLongitude());
-        return d / MAX_SPEED_KMH;
+        return d / maxSpeed;
+    }
+
+    /**
+     * Fastest road speed in the graph. Used as the heuristic's speed divisor
+     * so that estimated time never exceeds true time (admissibility). Falls
+     * back to 1.0 for an edgeless graph to avoid division by zero — such a
+     * graph has no routes anyway.
+     */
+    private double maxEdgeSpeed(Graph graph) {
+        double max = 0.0;
+        for (Node n : graph.getAllNodes()) {
+            for (Edge e : graph.getNeighbors(n.getId())) {
+                if (e.getSpeedLimit() > max)
+                    max = e.getSpeedLimit();
+            }
+        }
+        return max > 0 ? max : 1.0;
     }
 
     /**
