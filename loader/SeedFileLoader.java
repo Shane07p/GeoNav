@@ -32,6 +32,7 @@ public class SeedFileLoader {
         Set<String> nodeIds = new HashSet<>();
         Set<String> poiIds  = new HashSet<>();
         int nodeCount = 0, edgeCount = 0, poiCount = 0;
+        boolean sawNodes = false, sawEdges = false;
         Section section = Section.NONE;
         int lineNum = 0;
 
@@ -44,8 +45,8 @@ public class SeedFileLoader {
 
                 // Detect section headers (lines that start with "# NODES" etc.)
                 String upper = line.toUpperCase();
-                if (upper.startsWith("# NODES")) { section = Section.NODES; continue; }
-                if (upper.startsWith("# EDGES")) { section = Section.EDGES; continue; }
+                if (upper.startsWith("# NODES")) { section = Section.NODES; sawNodes = true; continue; }
+                if (upper.startsWith("# EDGES")) { section = Section.EDGES; sawEdges = true; continue; }
                 if (upper.startsWith("# POIS"))  { section = Section.POIS;  continue; }
                 if (line.startsWith("#"))         continue; // other comment
 
@@ -71,6 +72,16 @@ public class SeedFileLoader {
                 }
             }
         }
+
+        // A routable map needs both locations and roads; POIS stays optional.
+        if (!sawNodes)
+            throw new SeedFileException("seed file is missing the required '# NODES' section");
+        if (nodeCount == 0)
+            throw new SeedFileException("'# NODES' section defines no locations");
+        if (!sawEdges)
+            throw new SeedFileException("seed file is missing the required '# EDGES' section");
+        if (edgeCount == 0)
+            throw new SeedFileException("'# EDGES' section defines no valid roads");
 
         System.out.printf("  Loaded %d locations, %d roads, %d POIs.%n", nodeCount, edgeCount, poiCount);
     }
