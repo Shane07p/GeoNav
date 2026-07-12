@@ -1,6 +1,8 @@
-# GeoNav — Geospatial Routing & Navigation System
+[← Back to README](../README.md)
 
-A console-based geospatial routing engine built in Java. The system models a city map and supports route planning using **Dijkstra's Algorithm** (shortest distance) and **A\* Search** (fastest time), powered by a **QuadTree** spatial index for efficient nearest-neighbor queries and a **POI system** for finding nearby places by category.
+# Architecture
+
+## System Architecture
 
 ```mermaid
 flowchart LR
@@ -68,37 +70,31 @@ flowchart LR
 
 ---
 
-## Documentation
+## Project Structure
 
-| # | Doc | Covers |
-|---|-----|--------|
-| 1 | [Getting Started](docs/01-getting-started.md) | Build, run, and seed-file format + validation |
-| 2 | [Architecture](docs/02-architecture.md) | System diagram, package layout, project structure |
-| 3 | [Algorithms](docs/03-algorithms.md) | Dijkstra, A\*, flowcharts, heuristic math + proofs |
-| 4 | [Data Structures](docs/04-data-structures.md) | Graph, QuadTree, POIQuadTree, spatial partitioning |
-| 5 | [Performance](docs/05-performance.md) | Benchmarks + time-complexity tables |
-| 6 | [Features](docs/06-features.md) | Feature list + demo city map |
-
----
-
-## Quickstart
-
-```bash
-# From the final/ directory:
-
-# 1. Compile all sources into out/
-javac -d out model\Node.java model\Edge.java model\Route.java model\PointOfInterest.java graph\Graph.java spatial\QuadTree.java spatial\POIQuadTree.java strategy\RoutingStrategy.java strategy\DijkstraStrategy.java strategy\AStarStrategy.java engine\NavigationSystem.java loader\SeedFileLoader.java Main.java
-
-# 2. Run the interactive console (press Enter at the prompt for the default city)
-java -cp out Main
 ```
-
-Full build details, custom seed files, and the validation rules are in **[Getting Started](docs/01-getting-started.md)**.
-
----
-
-## License & Copyright
-
-© 2026 Shane Christian. All rights reserved.
-
-This project and its source code are the intellectual property of the author. No part may be reproduced, distributed, or used without the author's permission.
+final/
+├── Main.java                        # Interactive console UI
+├── BenchmarkRunner.java             # Standalone performance benchmarking tool
+├── model/
+│   ├── Node.java                    # Geographic location (id, name, lat, lon)
+│   ├── Edge.java                    # Road segment (distance, speed limit)
+│   ├── Route.java                   # Query result (path, distance, time)
+│   └── PointOfInterest.java         # POI (name, category, rating, coords)
+├── graph/
+│   └── Graph.java                   # Adjacency-list weighted graph
+├── spatial/
+│   ├── QuadTree.java                # Spatial index for nearest-neighbor queries
+│   └── POIQuadTree.java             # K-nearest POI search (max-heap pruning)
+├── strategy/
+│   ├── RoutingStrategy.java         # Routing algorithm interface
+│   ├── DijkstraStrategy.java        # Shortest-distance pathfinding
+│   └── AStarStrategy.java           # Fastest-time pathfinding (heuristic)
+├── engine/
+│   └── NavigationSystem.java        # Core engine coordinating graph, QuadTree & routing
+├── loader/
+│   └── SeedFileLoader.java          # Parses seed files; validates entries with warnings/errors
+├── seeds/
+│   └── default_city.txt             # Default city map (14 nodes, 22 roads, 33 POIs)
+└── out/                             # Compiled .class files (generated, not committed)
+```
