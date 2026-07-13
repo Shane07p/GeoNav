@@ -31,7 +31,6 @@ public class AStarStrategy implements RoutingStrategy {
     @Override
     public Route findRoute(Graph graph, Node src, Node dest) {
         Map<String, Double> gScore = new HashMap<>();
-        Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
         PriorityQueue<DijkstraStrategy.NodeEntry> pq = new PriorityQueue<>();
 
@@ -63,7 +62,6 @@ public class AStarStrategy implements RoutingStrategy {
                 String v  = edge.getDestination().getId();
                 double ng = gScore.get(u) + edge.getTravelTime();
                 if (ng < gScore.get(v)) {
-                    prev.put(v, u);
                     usedEdge.put(v, edge);
                     gScore.put(v, ng);
                     pq.add(new DijkstraStrategy.NodeEntry(v, ng + heuristic(edge.getDestination(), dest, maxSpeed)));
@@ -71,7 +69,7 @@ public class AStarStrategy implements RoutingStrategy {
             }
         }
 
-        return reconstructRoute(graph, src, dest, gScore, prev, usedEdge);
+        return reconstructRoute(graph, src, dest, gScore, usedEdge);
     }
 
     private double heuristic(Node a, Node b, double maxSpeed) {
@@ -118,25 +116,24 @@ public class AStarStrategy implements RoutingStrategy {
     }
 
     private Route reconstructRoute(Graph graph, Node src, Node dest,
-            Map<String, Double> gScore, Map<String, String> prev, Map<String, Edge> usedEdge) {
+            Map<String, Double> gScore, Map<String, Edge> usedEdge) {
         if (gScore.get(dest.getId()) == Double.MAX_VALUE) {
             return null;
         }
 
+        // Walk back from dest via the edge used to reach each node; that edge's
+        // source is the predecessor, so no separate prev map is needed.
         List<Node> path = new ArrayList<>();
-        String u = dest.getId();
-        while (u != null) {
-            path.add(graph.getNode(u));
-            u = prev.get(u);
-        }
-        Collections.reverse(path);
-
         double totalDist = 0;
-        u = dest.getId();
-        while (prev.containsKey(u)) {
-            totalDist += usedEdge.get(u).getDistance();
-            u = prev.get(u);
+        String u = dest.getId();
+        while (usedEdge.containsKey(u)) {
+            Edge e = usedEdge.get(u);
+            path.add(graph.getNode(u));
+            totalDist += e.getDistance();
+            u = e.getSource().getId();
         }
+        path.add(src);
+        Collections.reverse(path);
 
         return new Route(path, totalDist, gScore.get(dest.getId()));
     }

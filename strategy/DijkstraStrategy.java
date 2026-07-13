@@ -31,7 +31,6 @@ public class DijkstraStrategy implements RoutingStrategy {
     public Route findRoute(Graph graph, Node src, Node dest) {
 
         Map<String, Double> dist = new HashMap<>();
-        Map<String, String> prev = new HashMap<>();
         Map<String, Edge>   usedEdge = new HashMap<>();
         PriorityQueue<NodeEntry> pq = new PriorityQueue<>();
 
@@ -56,36 +55,34 @@ public class DijkstraStrategy implements RoutingStrategy {
                 double nd = dist.get(u) + edge.getDistance();
                 if (nd < dist.get(v)) {
                     dist.put(v, nd);
-                    prev.put(v, u);
                     usedEdge.put(v, edge);
                     pq.add(new NodeEntry(v, nd));
                 }
             }
         }
 
-        return reconstructRoute(graph, src, dest, dist, prev, usedEdge);
+        return reconstructRoute(graph, src, dest, dist, usedEdge);
     }
 
     protected Route reconstructRoute(Graph graph, Node src, Node dest,
-            Map<String, Double> dist, Map<String, String> prev, Map<String, Edge> usedEdge) {
+            Map<String, Double> dist, Map<String, Edge> usedEdge) {
         if (dist.get(dest.getId()) == Double.MAX_VALUE) {
             return null;
         }
 
+        // Walk back from dest via the edge used to reach each node; that edge's
+        // source is the predecessor, so no separate prev map is needed.
         List<Node> path = new ArrayList<>();
-        String u = dest.getId();
-        while (u != null) {
-            path.add(graph.getNode(u));
-            u = prev.get(u);
-        }
-        Collections.reverse(path);
-
         double totalTime = 0;
-        u = dest.getId();
-        while (prev.containsKey(u)) {
-            totalTime += usedEdge.get(u).getTravelTime();
-            u = prev.get(u);
+        String u = dest.getId();
+        while (usedEdge.containsKey(u)) {
+            Edge e = usedEdge.get(u);
+            path.add(graph.getNode(u));
+            totalTime += e.getTravelTime();
+            u = e.getSource().getId();
         }
+        path.add(src);
+        Collections.reverse(path);
 
         return new Route(path, dist.get(dest.getId()), totalTime);
     }
